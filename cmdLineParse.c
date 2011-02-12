@@ -134,6 +134,7 @@ static void verifyCmd(void)
 		}
 		else
 			return;
+	}
 	else
 	{
 		printUsage();
@@ -189,7 +190,7 @@ void parseCmdLine(int argc, char *argv[])
 				break;
 
 				case 'F':
-					fileLog(optarg)
+					fileLog(optarg);
 				break;
 
 				case 'h':

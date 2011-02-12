@@ -21,7 +21,7 @@
 /* 
  *		NetLink to Neighbour exported functions module
  */
-#include "neighLog.h"
+#include "nlSystem.h"
 struct neighBourBlock *parseNlPacket(struct nlmsghdr *nlMsgHdr);
 int packetTest(struct nlmsghdr *nlMsgHdr, int len);
 

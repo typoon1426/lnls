@@ -1,5 +1,5 @@
 /*   Linux Neighbour logging system
- *   developed within the VirtualSquare project
+ *   developed as part of VirtualSquare project
  *  
  *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
  *   
@@ -38,7 +38,7 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include "neighLog.h"
+#include "nlSystem.h"
 #include "logging.h"
 #include "nl2Neigh.h"
 #include "hashHandlers.h"

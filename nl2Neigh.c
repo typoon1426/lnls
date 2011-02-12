@@ -1,5 +1,5 @@
 /*   Linux Neighbour logging system
- *   developed within the VirtualSquare project
+ *   developed as part of VirtualSquare project
  *  
  *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
  *   
@@ -33,7 +33,7 @@
 #include <net/if.h>
 #include <time.h>
 
-#include "neighLog.h"
+#include "nlSystem.h"
 
 static struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr)
 {

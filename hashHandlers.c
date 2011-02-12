@@ -1,5 +1,5 @@
 /*   Linux Neighbour logging system
- *   developed within the VirtualSquare project
+ *   developed as part of VirtualSquare project
  *  
  *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
  *
@@ -28,7 +28,7 @@
 #include <string.h>
 #include <time.h>
 
-#include "neighLog.h"
+#include "nlSystem.h"
 
 /* hash table of recently seen ip addresses, collision lists are double linked */
 #define IP_HASH_SIZE 1024

@@ -1,7 +1,9 @@
-/*   This is part of VDE Virtual Distributed Internet
+/*   Linux Neighbour logging system
+ *   developed as part of VirtualSquare project
+ *  
+ *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
  *
- *   iplog: ip logging plugin for vde_switch
- *   
+ *   This module is mostly based on Virtual Distributed Ethernet vde_switch, iplog plugin hash table
  *   Copyright 2010 Renzo Davoli University of Bologna - Italy
  *   
  *   This program is free software; you can redistribute it and/or modify
@@ -17,11 +19,6 @@
  *   with this program; if not, write to the Free Software Foundation, Inc.,
  *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA.
  *
- */
-
-/*   Linux Neighbour logging system
- *   developed within VirtualSquare project
- *  
  */
 /* 
  *		Hash Table Module

@@ -1,5 +1,5 @@
 /*   Linux Neighbour logging system
- *   developed within the VirtualSquare project
+ *   developed as part of VirtualSquare project
  *  
  *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
  *   
@@ -27,9 +27,10 @@
 #include <unistd.h>
 #include <syslog.h>
 #include <string.h>
+#include <getopt.h>
 
 #include "logging.h"
-#include "neighLog.h"
+#include "nlSystem.h"
 
 #define DAEMONIZE_WEIGHT 1
 #define GROUPBYINT_WEIGHT 2
@@ -43,7 +44,7 @@
 #define MAXRANGE 15
 
 // DA MODIFICARE LA SPIEGAZIONE DEL DEBUG
-const char usage[] = "Usage: neigh_log [OPTIONS]\n"
+const char usage[] = "Usage: nlSystem [OPTIONS]\n"
 			"Runs Neighbour Logging System.\n"
 			"  -h, --help                 Display this help and exit\n"
 			"  -d, --daemonize            Run on background, not valid alone\n"
@@ -52,7 +53,7 @@ const char usage[] = "Usage: neigh_log [OPTIONS]\n"
 			"  -s, --syslog               Print all packet log on syslog\n"
 			"  -F,  --log-file filename    Print all packet log on logfile\n";
 
-static char programName[] = "neigh_log";
+static char programName[] = "nlSystem";
 
 static unsigned char commandLineRange = 0;
 static unsigned char daemonSet = 0;
@@ -62,28 +63,6 @@ static void printUsage(void)
 	fprintf(stdout, "%s", usage);
 }
 
-// EXPERIMENTAL
-/*static void confFile(char *fileName)
-{
-	// add weight
-	commandLineRange += CONF_WEIGHT;
-}
-*/
-// EXPERIMENTAL
-/*static void groupByInterface(char *intName)
-{
-	// add weight
-	commandLineRange += GROUPBYINT_WEIGHT;
-	if(interfaceExist())
-	{
-		// SETTA INTERFACCIA PER RAGGRUPPARE I LOG
-	}
-	else
-	{
-		// STAMPA INTERFACCIA NON ESISTE + EXIT1
-	}
-}
-*/
 static void fileLog(char *logFileName)
 {
 	FILE *stream = NULL;
@@ -97,11 +76,9 @@ static void fileLog(char *logFileName)
 		perror("logfile open:");
 		exit(1);
 	}
-	setMode(FILEOUT);
 
-	#ifdef __DEBUG1__
-	printf("logfile handler\n");
-	#endif
+	setMode(FILEOUT);
+	setFileLogStream(stream);
 }
 
 static void daemonize(void)
@@ -110,10 +87,6 @@ static void daemonize(void)
 	commandLineRange += DAEMONIZE_WEIGHT;
 	// TODO EXEC DAEMONIZE
 	daemonSet = 1;
-
-	#ifdef __DEBUG1__
-	printf("daemonize handler\n");
-	#endif
 }
 
 static void stdOutput(void)
@@ -121,10 +94,6 @@ static void stdOutput(void)
 	// add weight
 	commandLineRange += STDOUT_WEIGHT;
 	setMode(STDOUT);
-
-	#ifdef __DEBUG1__
-	printf("stdout handler\n");
-	#endif
 }
 
 static void sysLog(void)
@@ -134,20 +103,12 @@ static void sysLog(void)
 	// set syslog logging
 	openlog(programName, 0, LOG_SYSLOG);
 	setMode(SYSLOG);
-
-	#ifdef __DEBUG1__
-	printf("syslog handler\n");
-	#endif
 }
 
 static void help(void)
 {
 	// add weight
 	commandLineRange += HELP_WEIGHT;
-
-	#ifdef __DEBUG1__
-	printf("help handler\n");
-	#endif
 }
 
 static void debug(void)
@@ -156,106 +117,88 @@ static void debug(void)
 	commandLineRange += DEBUG_WEIGHT;
 
 	setMode(DEBUG);
-
-	#ifdef __DEBUG1__
-	printf("debug handler\n");
-	#endif
 }
 
-// parsing command line
-void parseCmdLine(int argc, char *argv[])
+// verify if the sum of weight is correct and if daemon is set daemonize the process
+static void verifyCmd(void)
 {
-	if(argc > 1)
+	if((commandLineRange > MINRANGE) && (commandLineRange < MAXRANGE))
 	{
-		int i;
-		for(i=1; i<argc; i++)
+		if(daemonSet == 1)
 		{
-			if((strcmp(argv[i], "-h") == 0) || (strcmp(argv[i], "--help") == 0))
+			if(daemon(0, 0) < 0)
 			{
-				help();
-
-				#ifdef __DEBUG1__
-				printf("help\n");
-				#endif
+				perror("daemon :");
+				exit(1);
 			}
-			/*else if((strcmp(argv[i], "-f") == 0) || (strcmp(argv[i], "--conf-file") == 0))
-			{
-				confFile();
-			}*/
-			else if((strcmp(argv[i], "-D") == 0) || (strcmp(argv[i], "--debug") == 0))
-			{
-				debug();
-				#ifdef __DEBUG1__
-				printf("debug\n");
-				#endif
-			}
-			else if((strcmp(argv[i], "-d") == 0) || (strcmp(argv[i], "--daemonize") == 0))
-			{
-				daemonize();
-				#ifdef __DEBUG1__
-				printf("daemonize\n");
-				#endif
-			}
-			else if((strcmp(argv[i], "-O") == 0) || (strcmp(argv[i], "--std-output") == 0))
-			{
-				stdOutput();
-				#ifdef __DEBUG1__
-				printf("stdout\n");
-				#endif
-			}
-			/*else if((strcmp(argv[i], "-i") == 0) || (strcmp(argv[i], "--group-by-interface") == 0))
-			{
-				groupByInterface();
-			}*/
-			else if((strcmp(argv[i], "-s") == 0) || (strcmp(argv[i], "--syslog") == 0))
-			{
-				sysLog();
-				#ifdef __DEBUG1__
-				printf("syslog\n");
-				#endif
-			}
-			else if((strcmp(argv[i], "-F") == 0) || (strcmp(argv[i], "--log-file") == 0))
-			{
-				if((i+1) < argc)
-				{
-					fileLog(argv[i+1]);
-				}
-				else
-					commandLineRange = MAXRANGE;
-
-				#ifdef __DEBUG1__
-				printf("logfile\n");
-				#endif
-			}
-		}
-
-		#ifdef __DEBUG1__
-		printf("commandLineRange %d\n", commandLineRange);
-		#endif
-
-		if((commandLineRange > MINRANGE) && (commandLineRange < MAXRANGE))
-		{
-			if(daemonSet == 1)
-			{
-				if(daemon(0, 0) < 0)
-				{
-					perror("daemon :");
-					exit(1);
-				}
-			}
-			return;
 		}
 		else
-		{
-			printUsage();
-			exit(1);
-		}
-	}
+			return;
 	else
 	{
 		printUsage();
-		exit(1);
+		exit(0);
 	}
+	
 }
 
+// parsing command line with getopt_long function
+void parseCmdLine(int argc, char *argv[])
+{
+	opterr = 0;
+	int c = 0;
+	if(argc == 1)
+	{
+		help();
+	}
+	else
+	{
+		while(1)
+		{
+			int option_index = 0;
+			static struct option long_options[] = {
+			{"daemonize", 0, 0, 'd'},
+			{"debug", 0, 0, 'D'},
+			{"help", 0, 0, 'h'},
+			{"stdout", 0, 0, 'O'},
+			{"syslog", 0, 0, 's'},
+			{"filelog", 1, 0, 'F'},
+			{0, 0, 0, 0}
+			};
 
+			c = getopt_long(argc, argv, "dDhOsF:", long_options, &option_index);
+			if (c == -1)
+				break;
+
+			switch (c)
+			{
+				case 'd':
+					daemonize();
+				break;
+
+				case 'D':
+					debug();
+				break;
+
+				case 'O':
+					stdOutput();
+				break;
+
+				case 's':
+					sysLog();
+				break;
+
+				case 'F':
+					fileLog(optarg)
+				break;
+
+				case 'h':
+				case '?':
+					help();
+				break;
+			}
+		}
+
+		verifyCmd();
+	}
+}

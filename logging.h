@@ -1,5 +1,5 @@
 /*   Linux Neighbour logging system
- *   developed within the VirtualSquare project
+ *   developed as part of VirtualSquare project
  *  
  *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
  *   
@@ -22,7 +22,7 @@
  *		Logging module exported functions
  */
 
-#include "neighLog.h"
+#include "nlSystem.h"
 
 void debugPrint(struct neighBourBlock *neigh);
 void logWrite(struct neighBourBlock *neigh);

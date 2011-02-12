@@ -1,5 +1,5 @@
 /*   Linux Neighbour logging system
- *   developed within the VirtualSquare project
+ *   developed as part of VirtualSquare project
  *  
  *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
  *   
@@ -35,7 +35,7 @@
 #include <time.h>
 #include <syslog.h>
 
-#include "neighLog.h"
+#include "nlSystem.h"
 
 static const char intString[] = "Interface :";
 static const char inetString[] = "IPv4 Address :";
@@ -62,24 +62,12 @@ static void neigh2Ascii(struct neighBourBlock *neigh, char *printOutBuf, int out
 	char linkAddr[ASCII_BUF];
 	int w = 0;
 	
-	#ifdef __DEBUG1__
-	printf("neigh2ascii pre snprintf\n");
-	#endif
-
 	// add interface name to string
 	w += snprintf(printOutBuf+w, outLen, "%s %s, ", intString, neigh->if_name);
 	
-	#ifdef __DEBUG1__
-	printf("neigh2ascii post snprintf\n");
-	#endif
-
 	// add ip to string
 	if(neigh->addressFamily == AF_INET)
 	{
-		#ifdef __DEBUG1__
-		printf("neigh2ascii ip4\n");
-		#endif
-
 		struct sockaddr_in inet;
 		memset(&inet, 0, sizeof(inet));
 
@@ -94,20 +82,9 @@ static void neigh2Ascii(struct neighBourBlock *neigh, char *printOutBuf, int out
 		}
 
 		w += snprintf(printOutBuf+w, outLen, "%s %s, ", inetString, netAddr);
-
-		
-		#ifdef __DEBUG1__
-		printf("neigh2ascii inetString: %s\n", inetString);
-		printf("neigh2ascii netAddr: %s\n", netAddr);
-		#endif
-
 	}
 	else if(neigh->addressFamily == AF_INET6)
 	{
-		#ifdef __DEBUG1__
-		printf("neigh2ascii ip6\n");
-		#endif
-
 		struct sockaddr_in6 inet6;
 		memset(&inet6, 0, sizeof(inet6));
 
@@ -122,21 +99,11 @@ static void neigh2Ascii(struct neighBourBlock *neigh, char *printOutBuf, int out
 		}
 
 		w += snprintf(printOutBuf+w, outLen, "%s %s, ", inet6String, netAddr);
-
-		#ifdef __DEBUG1__
-		printf("neigh2ascii inet6String: %s\n", inet6String);
-		printf("neigh2ascii netAddr: %s\n", netAddr);
-		#endif
 	}
 	
 	// add mac address to string
 	etherAddr2Str(neigh->etherAddr, linkAddr, ETH_ALEN, sizeof(linkAddr));
-	w += snprintf(printOutBuf+w, outLen, "%s %s", etherAddrString, linkAddr);
-
-	#ifdef __DEBUG1__
-	printf("neigh2ascii ethaddrstring: %s\n", etherAddrString);
-	#endif
-	
+	w += snprintf(printOutBuf+w, outLen, "%s %s", etherAddrString, linkAddr);	
 }
 
 static void timeStamp(time_t *time, char *buf, int len)
@@ -149,27 +116,11 @@ static void str2FdPrint(struct neighBourBlock *neigh, FILE *fd)
 	char str[PRINTOUTBUF];
 	char timeStampBuf[ASCII_BUF];
 
-	#ifdef __DEBUG1__
-	printf("pre time stamp\n");
-	#endif
-
 	timeStamp(&(neigh->last_seen), timeStampBuf, sizeof(timeStampBuf));
-	
-	#ifdef __DEBUG1__
-	printf("post time stamp, pre neigh2ascii\n");
-	#endif
 
 	neigh2Ascii(neigh, str, sizeof(str));
 
-	#ifdef __DEBUG1__
-	printf("post neigh2ascii, pre fprintf\n");
-	#endif
-
 	fprintf(fd, "%s %s\n", str, timeStampBuf);
-
-	#ifdef __DEBUG1__
-	printf("post fprintf\n");
-	#endif
 }
 
 static void sysLogPrint(struct neighBourBlock *neigh)
@@ -201,15 +152,7 @@ unsigned char getMode(void)
 
 void debugPrint(struct neighBourBlock *neigh)
 {
-	#ifdef __DEBUG1__
-	printf("debugPrint start\n");
-	#endif
-
 	str2FdPrint(neigh, stdout);
-	
-	#ifdef __DEBUG1__
-	printf("debugPrint exit\n");
-	#endif
 }
 
 void setFileLogStream(FILE *logStream)

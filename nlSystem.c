@@ -22,8 +22,6 @@
  *		Main Module
  */
 
-/* RIGUARDARE TODO SUPPORTO ARGOMENTI RIGA COMANDO, FILE CONFIGURAZIONE */
-
 #include <sys/socket.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
@@ -51,9 +49,13 @@ static struct msghdr msg;
 static struct nlmsghdr *nlMsg;
 static int fd; 
 
-// TODO
 static void cleanExit(void)
 {
+	if(getFileLogStream() != NULL)
+	{
+		closeLogFile();
+	}
+
 	exit(0);
 }
 
@@ -171,14 +173,14 @@ static void defSigHandler(int sig)
 		case STDOUT:
 		{
 			printf("Caught signal %d, close all socket and exiting.\n", sig);
-			cleanExit(); //TODO
+			cleanExit(); 
 		}
 		break;
 
 		case FILEOUT:	
 		{
 			fprintf(getFileLogStream(), "Caught signal %d, close all socket and exiting.\n", sig);
-			cleanExit(); //TODO
+			cleanExit(); 
 		}			
 		break;
 
@@ -188,7 +190,7 @@ static void defSigHandler(int sig)
 
 			snprintf(log, sizeof(log), "Caught signal %d, close all socket and exiting.\n", sig);
 			syslog(LOG_ERR, log);
-			cleanExit(); //TODO
+			cleanExit();
 		}		
 		break;
 	}
@@ -198,7 +200,7 @@ static void setSignalHandlers()
 {
 	// all signals - SIGALRM
 	struct sigaction actionIgnore, actionDefault;
-	int i, signals[] = {SIGHUP,/* SIGINT, */SIGPIPE, SIGTERM, SIGUSR1, SIGUSR2, SIGPROF, SIGVTALRM};
+	int i, signals[] = {SIGHUP, SIGINT, SIGPIPE, SIGTERM, SIGUSR1, SIGUSR2, SIGPROF, SIGVTALRM};
 
 	memset(&actionIgnore, 0, sizeof(actionIgnore));
 	memset(&actionDefault, 0, sizeof(actionDefault));
@@ -232,76 +234,24 @@ static void setSignalHandlers()
 
 int main(int argc, char *argv[])
 {
-	#ifdef __DEBUG__
-	printf("entry setsig handler\n");
-	#endif
-
 	// signal handlers
 	setSignalHandlers();
-
-	#ifdef __DEBUG__
-	printf("exit setsig handler\n");
-	#endif
-	
-	#ifdef __DEBUG__
-	printf("entry mask\n");
-	#endif
 
 	// mask SIGALRM 
 	mask();
 
-	#ifdef __DEBUG__
-	printf("exit mask\n");
-	#endif
-
-	#ifdef __DEBUG__
-	printf("entry parsecmdline\n");
-	#endif
-
 	// parse command line arguments
 	parseCmdLine(argc, argv);
-	
-	#ifdef __DEBUG__
-	printf("exit parsecmdline\n");
-	#endif
-
-	#ifdef __DEBUG__
-	printf("entry initstruct\n");
-	#endif
 
 	// init all structures
 	initStruct();
 
-	#ifdef __DEBUG__
-	printf("exit initstruct\n");
-	#endif
-
-	#ifdef __DEBUG__
-	printf("entry socketbind\n");
-	#endif
-
 	// open socket and bind
 	socketBind();
-
-	#ifdef __DEBUG__
-	printf("exit socketbind\n");
-	#endif
-
-	#ifdef __DEBUG__
-	printf("entry unmask\n");
-	#endif
 
 	// unmask SIGALRM for start interval timer
 	if(getMode() != DEBUG)
 		unMask();
-
-	#ifdef __DEBUG__
-	printf("exit unmask\n");
-	#endif
-
-	#ifdef __DEBUG__
-	printf("entry mainloop\n");
-	#endif
 
 	// main loop
 	mainLoop();

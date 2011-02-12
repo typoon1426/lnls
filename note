@@ -1,5 +1,5 @@
 
-mancano gestione clean exit e shutdown, gestione file conf, raggruppamento per interfacce
+mancano gestione clean exit e shutdown
 
 CONTROLLARE EINTR OVUNQUE
 

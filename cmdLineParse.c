@@ -48,10 +48,10 @@ const char usage[] = "Usage: nlSystem [OPTIONS]\n"
 			"Runs Neighbour Logging System.\n"
 			"  -h, --help                 Display this help and exit\n"
 			"  -d, --daemonize            Run on background, not valid alone\n"
-			"  -D, --debug                Print all packet log on standard output, without timing handling, this option must used alone\n" 
-			"  -O,  --std-output           Print all packet log on standard output, this option must used alone\n"
+			"  -D, --debug                Print all packet log on standard output, without timing handling, this option must be used alone\n" 
+			"  -O, --stdout               Print all packet log on standard output, this option must be used alone\n"
 			"  -s, --syslog               Print all packet log on syslog\n"
-			"  -F,  --log-file filename    Print all packet log on logfile\n";
+			"  -F, --filelog filename    Print all packet log on logfile\n";
 
 static char programName[] = "nlSystem";
 
@@ -70,7 +70,7 @@ static void fileLog(char *logFileName)
 	// add weight
 	commandLineRange += FILELOG_WEIGHT;
 
-	stream = fopen(logFileName, "a");
+	stream = fopen(logFileName, "a+");
 	if(stream == NULL)
 	{
 		perror("logfile open:");
@@ -85,7 +85,7 @@ static void daemonize(void)
 {
 	// add weight
 	commandLineRange += DAEMONIZE_WEIGHT;
-	// TODO EXEC DAEMONIZE
+	
 	daemonSet = 1;
 }
 

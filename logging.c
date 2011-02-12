@@ -42,6 +42,7 @@ static const char inetString[] = "IPv4 Address :";
 static const char inet6String[] = "IPv6 Address :";
 static const char etherAddrString[] = "Local Link Address :";
 static const char timeFormat[] = "%d/%m/%y - %H:%M:%S";
+static char lineBuf[1024];
 
 static FILE *logFile = NULL; 
 static unsigned char mode = 0;
@@ -120,7 +121,7 @@ static void str2FdPrint(struct neighBourBlock *neigh, FILE *fd)
 
 	neigh2Ascii(neigh, str, sizeof(str));
 
-	fprintf(fd, "%s %s\n", str, timeStampBuf);
+	fprintf(fd, "[ %s ] %s\n", timeStampBuf, str);
 }
 
 static void sysLogPrint(struct neighBourBlock *neigh)
@@ -158,6 +159,14 @@ void debugPrint(struct neighBourBlock *neigh)
 void setFileLogStream(FILE *logStream)
 {
 	logFile = logStream;
+
+	// set stream line buffered
+	if(setvbuf(logFile, lineBuf, _IOLBF, LINEBUFLEN) != 0)
+	{
+		perror("setvbuf error:");
+		closeLogFile();
+		exit(1);
+	}
 }
 
 FILE *getFileLogStream(void)

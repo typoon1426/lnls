@@ -199,7 +199,7 @@ void parseCmdLine(int argc, char *argv[])
 				break;
 			}
 		}
-
-		verifyCmd();
 	}
+	
+	verifyCmd();
 }

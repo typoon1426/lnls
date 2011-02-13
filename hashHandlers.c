@@ -36,8 +36,12 @@
 struct neighBourBlock *hashTable[IP_HASH_SIZE];
 static int ip_gc_expire = IP_GC_EXPIRE;
 
+// always inline prototype
+static int ip_hash(int len,unsigned char *addr) __attribute__((always_inline));
+static void delete_hash_entry(struct neighBourBlock *old) __attribute__((always_inline));
+
 /* hash function */
-static inline int ip_hash(int len,unsigned char *addr)
+static int ip_hash(int len,unsigned char *addr)
 {
 	if (len == 4)
 		return((addr[0]+2*addr[1]+3*addr[2]+5*addr[3]) % IP_HASH_SIZE);
@@ -108,7 +112,7 @@ static void ip_for_all_hash(void (*f)(struct neighBourBlock *, void *), void *ar
 }
 
 /* delete a hash table entry */
-static inline void delete_hash_entry(struct neighBourBlock *old) 
+static void delete_hash_entry(struct neighBourBlock *old) 
 {
 	int key;
 

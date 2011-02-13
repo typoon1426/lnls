@@ -43,6 +43,11 @@
 #define MINRANGE 10
 #define MAXRANGE 15
 
+struct subnetToken {
+	char *token;
+	struct subnetToken *next;
+};
+
 // DA MODIFICARE LA SPIEGAZIONE DEL DEBUG
 const char usage[] = "Usage: nlSystem [OPTIONS]\n"
 			"Runs Neighbour Logging System.\n"
@@ -51,7 +56,10 @@ const char usage[] = "Usage: nlSystem [OPTIONS]\n"
 			"  -D, --debug                Print all packet log on standard output, without timing handling, this option must be used alone\n" 
 			"  -O, --stdout               Print all packet log on standard output, this option must be used alone\n"
 			"  -s, --syslog               Print all packet log on syslog\n"
-			"  -F, --filelog filename    Print all packet log on logfile\n";
+			"  -F, --filelog filename     Print all packet log on logfile\n"
+			"  -A, --addrfamily           Select address family of packets according to argument\n"
+			"  -I, --interfaces	      Select interfaces of packets according to argument\n"
+			"  -S, --subnets	      Select subnets of packets according to argument\n";
 
 static char programName[] = "nlSystem";
 
@@ -119,6 +127,102 @@ static void debug(void)
 	setMode(DEBUG);
 }
 
+static void filterAddrFamily(char *addrFamily)
+{
+/*	switch(addrFamily)
+	{
+		case 'inet':
+			setFilter();
+			setAF(AF_INET);
+		break;
+
+		case 'inet6':
+			setFilter();
+			setAF(AF_INET6);
+		break;
+
+		default:
+			// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
+			help();
+		break;
+	}*/
+}
+
+static void filterInterfaces(char *interfaces)
+{
+	// VEDERE SE È MEGLIO, MOLTO PROBABILMENTE LO È, FARE DUE PASSAGGIO PRIMA CREAZIONE TOKEN IN UNA LISTA POI CONVERSIONE TOKEN DELLA LISTA.
+
+	/* parsa la stringa passata come argomento e restituisce il token 
+	alla funzione di conversione nome int-index che restituisce errore se l'int non esiste
+	*/
+/*	char *token = NULL;
+	unsigned int int_index = 0;
+
+	setFilter();
+
+	do
+	{
+		if(token != NULL)
+			interfaces = NULL;
+
+		token = strtok(interfaces, ",");
+		int_index = if_nametoindex(token);
+
+		if(int_index  != 0)
+		{
+			addInterface(int_index);
+		}
+		else
+		{
+			// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
+			help();
+			token = NULL;
+		}
+	}
+	while (token != NULL);
+*/
+}
+
+static void filterSubnets(char *subnets)
+{
+	/*char *token = NULL;
+	unsigned int counter = 0;
+	struct subnetToken *tail = NULL;
+
+	setFilter();
+
+	do
+	{
+		if(token != NULL)
+			subnets = NULL;
+
+		token = strtok(subnets, ";");
+		
+		if(token != NULL)
+		{
+			if(tail == NULL)
+			{
+				tail = malloc(sizeof(struct subnetToken));
+				tail->token = token;
+				tail->next = NULL;
+				counter++;
+			}
+			else
+			{
+				struct subnetToken *new = NULL;
+				new = malloc(sizeof(struct subnetToken));
+				new->token = token;
+				new->next = tail;
+				tail = new;
+				counter++;
+			}	
+		}
+	}
+	while (token != NULL);
+*/
+	
+}
+
 // verify if the sum of weight is correct and if daemon is set daemonize the process
 static void verifyCmd(void)
 {
@@ -164,10 +268,13 @@ void parseCmdLine(int argc, char *argv[])
 			{"stdout", 0, 0, 'O'},
 			{"syslog", 0, 0, 's'},
 			{"filelog", 1, 0, 'F'},
+			{"addrfamily", 1, 0, 'A'},
+			{"interfaces", 1, 0, 'I'},
+			{"subnets", 1, 0, 'S'},
 			{0, 0, 0, 0}
 			};
 
-			c = getopt_long(argc, argv, "dDhOsF:", long_options, &option_index);
+			c = getopt_long(argc, argv, "dDhOsF:A:I:S:", long_options, &option_index);
 			if (c == -1)
 				break;
 
@@ -191,6 +298,18 @@ void parseCmdLine(int argc, char *argv[])
 
 				case 'F':
 					fileLog(optarg);
+				break;
+				
+				case 'A':
+					filterAddrFamily(optarg);
+				break;
+
+				case 'I':
+					filterInterfaces(optarg);
+				break;
+
+				case 'S':
+					filterSubnets(optarg);
 				break;
 
 				case 'h':

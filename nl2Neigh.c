@@ -112,19 +112,12 @@ struct neighBourBlock *parseNlPacket(struct nlmsghdr *nlMsgHdr)
 	// verify if received packet is from kernel, with pid 0
 	if(nlMsgHdr->nlmsg_pid == 0)
 	{
-		#ifdef __DEBUG1__
-		printf("parsepacket from kernel\n");
-		#endif
-
 		// message sent from kernel
 		
 		// select only RTM_NEWNEIGH packet type
 		// TODO ADD RT PACKET'S INTEGRITY CHECK
 		if(nlMsgHdr->nlmsg_type == RTM_NEWNEIGH)
 		{
-			#ifdef __DEBUG1__
-			printf("parsepacket new neigh\n");
-			#endif
 			return packetConverter(nlMsgHdr);
 		}
 	}

@@ -48,6 +48,7 @@ static struct iovec iov;
 static struct msghdr msg;
 static struct nlmsghdr *nlMsg;
 static int fd; 
+static unsigned int filters = FALSE;
 
 static void cleanExit(void)
 {
@@ -127,6 +128,14 @@ static void pktSave(struct neighBourBlock *neighBour)
 	}
 }
 
+// filtra i pacchetti secondo le direttive di filtro da riga di comando, interfacce e subnet
+static unsigned int filter(struct neighBourBlock *neighBour)
+{
+	unsigned int ret_val = TRUE;
+
+	return ret_val;
+}
+
 static void mainLoop(void)
 {
 	int ret;
@@ -156,8 +165,12 @@ static void mainLoop(void)
 					}
 					else
 					{
-						// funzione che verifica nella hash table se è presente ed eventualmente logga secondo il logging configurato
-						pktSave(neighBour);						
+						// controlla se il pacchetto corrisponde all'eventuale specifica di interfaccia e subnet in riga di comando
+						if((filters == TRUE) && (filter(neighBour) == FALSE))
+							free(neighBour);
+						else
+							// funzione che verifica nella hash table se è presente ed eventualmente logga secondo il logging configurato
+							pktSave(neighBour);		
 					}
 				}			
 			}
@@ -170,6 +183,7 @@ static void defSigHandler(int sig)
 {
 	switch (getMode())
 	{
+		case DEBUG:
 		case STDOUT:
 		{
 			printf("Caught signal %d, close all socket and exiting.\n", sig);

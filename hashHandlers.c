@@ -31,7 +31,7 @@
 #include "nlSystem.h"
 
 /* hash table of recently seen ip addresses, collision lists are double linked */
-#define IP_HASH_SIZE 1024
+#define IP_HASH_SIZE 1024 // ATTENZIONE FUTURA IMPLEMENTAZIONE ARRAY DINAMICO
 
 struct neighBourBlock *hashTable[IP_HASH_SIZE];
 static int ip_gc_expire = IP_GC_EXPIRE;

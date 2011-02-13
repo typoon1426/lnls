@@ -27,6 +27,8 @@
 #include <net/if.h>
 #include <netdb.h>
 
+#define TRUE 1
+#define FALSE 0
 #define ARRAY_LENGTH(x) (sizeof(x)/sizeof(*(x)))
 
 #define BUFLENGTH 1024

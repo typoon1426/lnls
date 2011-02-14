@@ -48,7 +48,6 @@ static struct iovec iov;
 static struct msghdr msg;
 static struct nlmsghdr *nlMsg;
 static int fd; 
-static unsigned int filters = FALSE;
 
 static void cleanExit(void)
 {
@@ -128,14 +127,6 @@ static void pktSave(struct neighBourBlock *neighBour)
 	}
 }
 
-// filtra i pacchetti secondo le direttive di filtro da riga di comando, interfacce e subnet
-static unsigned int filter(struct neighBourBlock *neighBour)
-{
-	unsigned int ret_val = TRUE;
-
-	return ret_val;
-}
-
 static void mainLoop(void)
 {
 	int ret;
@@ -160,17 +151,19 @@ static void mainLoop(void)
 				{
 					if(getMode() == DEBUG) {
 						debugPrint(neighBour);
-						
 						free(neighBour);
 					}
 					else
 					{
+						#ifdef __EXPERIMENTAL__
 						// controlla se il pacchetto corrisponde all'eventuale specifica di interfaccia e subnet in riga di comando
-						if((filters == TRUE) && (filter(neighBour) == FALSE))
+						// FILTERSACTIVED == TRUE && FILTER == FALSE
+						if((filtersActived()) && (filter(neighBour) == FALSE))
 							free(neighBour);
 						else
 							// funzione che verifica nella hash table se è presente ed eventualmente logga secondo il logging configurato
-							pktSave(neighBour);		
+							pktSave(neighBour);
+						#endif		
 					}
 				}			
 			}

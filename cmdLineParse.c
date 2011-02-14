@@ -43,11 +43,6 @@
 #define MINRANGE 10
 #define MAXRANGE 15
 
-struct subnetToken {
-	char *token;
-	struct subnetToken *next;
-};
-
 // DA MODIFICARE LA SPIEGAZIONE DEL DEBUG
 const char usage[] = "Usage: nlSystem [OPTIONS]\n"
 			"Runs Neighbour Logging System.\n"
@@ -127,38 +122,33 @@ static void debug(void)
 	setMode(DEBUG);
 }
 
+#ifdef __EXPERIMENTAL__
 static void filterAddrFamily(char *addrFamily)
 {
-/*	switch(addrFamily)
-	{
-		case 'inet':
-			setFilter();
-			setAF(AF_INET);
-		break;
+	// CONTROLLARE SE SI PUÒ FARE UNA VOLTA SOLA VISTO CHE LE FUNC FILTERSUBNETS, INTERFACES, ADDRESS FAMILY SONO CHIAMATE PER OGNI ARGOMENTO DI QUEL TIPO TROVATO
+	filterActive();
 
-		case 'inet6':
-			setFilter();
-			setAF(AF_INET6);
-		break;
-
-		default:
-			// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
-			help();
-		break;
-	}*/
+	if(strcmp((const char *) addrFamily, "inet"))
+		filterSetAF(AF_INET);
+	else if(strcmp((const char *) addrFamily, "inet6"))
+		filterSetAF(AF_INET6);
+	else
+		// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
+		help();
+	
 }
 
 static void filterInterfaces(char *interfaces)
 {
-	// VEDERE SE È MEGLIO, MOLTO PROBABILMENTE LO È, FARE DUE PASSAGGIO PRIMA CREAZIONE TOKEN IN UNA LISTA POI CONVERSIONE TOKEN DELLA LISTA.
 
 	/* parsa la stringa passata come argomento e restituisce il token 
 	alla funzione di conversione nome int-index che restituisce errore se l'int non esiste
 	*/
-/*	char *token = NULL;
+	char *token = NULL;
 	unsigned int int_index = 0;
 
-	setFilter();
+	// CONTROLLARE SE SI PUÒ FARE UNA VOLTA SOLA VISTO CHE LE FUNC FILTERSUBNETS, INTERFACES, ADDRESS FAMILY SONO CHIAMATE PER OGNI ARGOMENTO DI QUEL TIPO TROVATO
+	filterActive();
 
 	do
 	{
@@ -169,9 +159,7 @@ static void filterInterfaces(char *interfaces)
 		int_index = if_nametoindex(token);
 
 		if(int_index  != 0)
-		{
-			addInterface(int_index);
-		}
+			filterAddInterface(int_index);
 		else
 		{
 			// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
@@ -180,16 +168,14 @@ static void filterInterfaces(char *interfaces)
 		}
 	}
 	while (token != NULL);
-*/
 }
 
 static void filterSubnets(char *subnets)
 {
-	/*char *token = NULL;
-	unsigned int counter = 0;
-	struct subnetToken *tail = NULL;
+	char *token = NULL;
 
-	setFilter();
+	// CONTROLLARE SE SI PUÒ FARE UNA VOLTA SOLA VISTO CHE LE FUNC FILTERSUBNETS, INTERFACES, ADDRESS FAMILY SONO CHIAMATE PER OGNI ARGOMENTO DI QUEL TIPO TROVATO
+	filterActive();
 
 	do
 	{
@@ -200,29 +186,21 @@ static void filterSubnets(char *subnets)
 		
 		if(token != NULL)
 		{
-			if(tail == NULL)
+			if(!filterAddSubnet(token))
 			{
-				tail = malloc(sizeof(struct subnetToken));
-				tail->token = token;
-				tail->next = NULL;
-				counter++;
+				// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
+				help();
+				token = NULL;
 			}
-			else
-			{
-				struct subnetToken *new = NULL;
-				new = malloc(sizeof(struct subnetToken));
-				new->token = token;
-				new->next = tail;
-				tail = new;
-				counter++;
-			}	
 		}
+		else
+			filterSubnetEnd();
 	}
-	while (token != NULL);
-*/
-	
+	while (token != NULL);	
 }
+#endif
 
+// VERIFICARE SE SERVE QUESTA FUNZIONE O BASTA LASCIARE IL CODICE NEL CHIAMANTE
 // verify if the sum of weight is correct and if daemon is set daemonize the process
 static void verifyCmd(void)
 {
@@ -299,7 +277,7 @@ void parseCmdLine(int argc, char *argv[])
 				case 'F':
 					fileLog(optarg);
 				break;
-				
+				#ifdef __EXPERIMENTAL__
 				case 'A':
 					filterAddrFamily(optarg);
 				break;
@@ -311,7 +289,7 @@ void parseCmdLine(int argc, char *argv[])
 				case 'S':
 					filterSubnets(optarg);
 				break;
-
+				#endif
 				case 'h':
 				case '?':
 					help();

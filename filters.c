@@ -53,8 +53,8 @@ struct subNet6 {
 	struct subNet6 *prev;
 };
 
-static int filters = FALSE, addressFamily = 0;
-static unsigned char filtersBitMap = 0x00;
+static int filters = FALSE;
+static unsigned char filtersBitMap = 0x00, addressFamily = 0;
 static unsigned char *intTable = NULL; 
 
 static struct subNet4 *inet4SubnetList = NULL;
@@ -106,6 +106,9 @@ static int verifyAF(unsigned char af)
 
 static int verifyInt(unsigned int if_index)
 {
+	printf("codice interfaccia arrivato %u\n", if_index);
+	printf("interfaccia selezionata array %u\n", intTable[if_index]);
+	
 	if(intTable[if_index] == TRUE)
 		return TRUE;
 	else 
@@ -120,20 +123,25 @@ static int verifySubnet(struct neighBourBlock *neighBour)
 		unsigned int hostAddress = *((unsigned int *) neighBour->inetAddr);
 		unsigned int subMask = 0, subNetAddress = 0;
 
-		while(1) {
-			subMask = *((unsigned int *) temp->inetMask);
-			subNetAddress = *((unsigned int *) temp->inetSubnet);
+		if(temp != NULL)
+		{
+			while(1) {
+				subMask = *((unsigned int *) temp->inetMask);
+				subNetAddress = *((unsigned int *) temp->inetSubnet);
 
-			if(((hostAddress) & (subMask)) == subNetAddress)
-				return TRUE;
-			else
-			{
-				if(temp->next != inet4SubnetList)
-					temp = temp->next;
+				if(((hostAddress) & (subMask)) == subNetAddress)
+					return TRUE;
 				else
-					return FALSE;
+				{
+					if(temp->next != inet4SubnetList)
+						temp = temp->next;
+					else
+						return FALSE;
+				}
 			}
 		}
+		else
+			return FALSE;
 	}
 	else if(neighBour->addressFamily == AF_INET6)
 	{
@@ -144,29 +152,34 @@ static int verifySubnet(struct neighBourBlock *neighBour)
 						(*(((unsigned int *) neighBour->inet6Addr)+3))};
 		unsigned int subMask[4], subNetAddress[4];
 
-		while(1) {
-			subMask[0] = *((unsigned int *) temp->inet6Mask);
-			subMask[1] = *(((unsigned int *) temp->inet6Mask)+1);
-			subMask[2] = *(((unsigned int *) temp->inet6Mask)+2);
-			subMask[3] = *(((unsigned int *) temp->inet6Mask)+3);
-			subNetAddress[0] = *((unsigned int *) temp->inet6Subnet);
-			subNetAddress[1] = *(((unsigned int *) temp->inet6Subnet)+1);
-			subNetAddress[2] = *(((unsigned int *) temp->inet6Subnet)+2);
-			subNetAddress[3] = *(((unsigned int *) temp->inet6Subnet)+3);
+		if(temp != NULL)
+		{
+			while(1) {
+				subMask[0] = *((unsigned int *) temp->inet6Mask);
+				subMask[1] = *(((unsigned int *) temp->inet6Mask)+1);
+				subMask[2] = *(((unsigned int *) temp->inet6Mask)+2);
+				subMask[3] = *(((unsigned int *) temp->inet6Mask)+3);
+				subNetAddress[0] = *((unsigned int *) temp->inet6Subnet);
+				subNetAddress[1] = *(((unsigned int *) temp->inet6Subnet)+1);
+				subNetAddress[2] = *(((unsigned int *) temp->inet6Subnet)+2);
+				subNetAddress[3] = *(((unsigned int *) temp->inet6Subnet)+3);
 
-			if( (((hostAddress[0]) & (subMask[0])) == subNetAddress[0]) &&
-				(((hostAddress[1]) & (subMask[1])) == subNetAddress[1]) &&
-				(((hostAddress[2]) & (subMask[2])) == subNetAddress[2]) &&
-				(((hostAddress[3]) & (subMask[3])) == subNetAddress[3]))
-				return TRUE;
-			else
-			{
-				if(temp->next != inet6SubnetList)
-					temp = temp->next;
+				if( (((hostAddress[0]) & (subMask[0])) == subNetAddress[0]) &&
+					(((hostAddress[1]) & (subMask[1])) == subNetAddress[1]) &&
+					(((hostAddress[2]) & (subMask[2])) == subNetAddress[2]) &&
+					(((hostAddress[3]) & (subMask[3])) == subNetAddress[3]))
+					return TRUE;
 				else
-					return FALSE;
+				{
+					if(temp->next != inet6SubnetList)
+						temp = temp->next;
+					else
+						return FALSE;
+				}
 			}
 		}
+		else
+			return FALSE;
 	}
 
 	// NON DOVREBBE MAI RAGGIUNGERE QUESTO PUNTO, RETURN PER EVITARE WARNING
@@ -181,7 +194,12 @@ int filter(struct neighBourBlock *neighBour)
 	switch(filtersBitMap)
 	{
 		case 1:
+		{
 			ret_val = verifyAF(neighBour->addressFamily);
+			// DEBUG
+			printf("address family %u\n", neighBour->addressFamily);
+			printf("address family memorizzato %u\n", addressFamily);
+		}		
 		break;
 
 		case 2:
@@ -226,6 +244,8 @@ void filterAddInterface(unsigned int int_index)
 		filtersBitMap |= FILTER_INT; 
 
 	intTable[int_index] = TRUE;
+	printf("codice int prima %u\n", int_index);
+	printf("interfaccia settata array %u\n", intTable[int_index]);
 }
 
 // XXX TODO
@@ -310,7 +330,7 @@ int filterAddSubnet(char *subNet)
      		fprintf(stderr, "error in getaddrinfo: %s\n", gai_strerror(ret));
      		return FALSE; 
   	}   
-
+	
 	for(tmp = info; tmp != NULL; tmp = tmp->ai_next)
 	{
 		if(tmp->ai_addrlen == sizeof(struct sockaddr_in))
@@ -324,6 +344,24 @@ int filterAddSubnet(char *subNet)
 			len = INET6LEN;
 			new6 = malloc(sizeof(struct subNet6));
 			memcpy(new6->inet6Subnet, &(((struct sockaddr_in6 *) tmp->ai_addr)->sin6_addr.s6_addr), INET6LEN);
+			
+			// DEBUG
+			printf("%02hhx", *((unsigned char *) new6->inet6Subnet));
+			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+1));
+			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+2));
+			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+3));
+			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+4));
+			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+5));
+			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+6));
+			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+7));
+			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+8));
+			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+9));
+			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+10));
+			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+11));
+			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+12));
+			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+13));
+			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+14));
+			printf("%02hhx\n", *(((unsigned char *) new6->inet6Subnet)+15));
 		}	
 	}
 
@@ -410,7 +448,7 @@ void filterSubnetEnd(void)
 			}
 		}
 	}
-
+	// v6
 	for(i=0;i<NETMASK6_BIT_SIZE;i++)
 	{
 		if(subNetMaskBit6[i] != NULL)

@@ -159,11 +159,20 @@ static void mainLoop(void)
 						#ifdef __EXPERIMENTAL__
 						// controlla se il pacchetto corrisponde all'eventuale specifica di interfaccia e subnet in riga di comando
 						// FILTERSACTIVED == TRUE && FILTER == FALSE
+
 						if((filtersActived()) && (filter(neighBour) == FALSE))
+						{
+							// DEBUG
+							printf("Filtri attivi, pacchetto filtrato\n");
 							free(neighBour);
+						}						
 						else
+						{
+							// DEBUG
+							printf("Filtri non attivi, o pacchetto non filtrato\n");
 							// funzione che verifica nella hash table se è presente ed eventualmente logga secondo il logging configurato
 							pktSave(neighBour);
+						}
 						#else
 							// funzione che verifica nella hash table se è presente ed eventualmente logga secondo il logging configurato
 							pktSave(neighBour);

@@ -130,11 +130,11 @@ static void filterAddrFamily(char *addrFamily)
 	{
 		afCalled = TRUE;
 
-		filtersInit();
+		filtersInit(); // OTTIMIZZARE PERCHÈ QUA C'È FILTERSINIT PUÒ ANCHE NON ESSERCI
 
-		if(strcmp((const char *) addrFamily, "inet"))
+		if(strcmp((const char *) addrFamily, "inet") == 0)
 			filterSetAF(AF_INET);
-		else if(strcmp((const char *) addrFamily, "inet6"))
+		else if(strcmp((const char *) addrFamily, "inet6") == 0)
 			filterSetAF(AF_INET6);
 		else
 			// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
@@ -168,7 +168,11 @@ static void filterInterfaces(char *interfaces)
 			
 			if(token != NULL)
 			{
+				// DEBUG
+				printf("interfaccia inserita %s\n", token);
 				int_index = if_nametoindex(token);
+
+				printf("codice interfaccia %u\n", int_index);				
 
 				if(int_index  != 0)
 					filterAddInterface(int_index);
@@ -179,8 +183,6 @@ static void filterInterfaces(char *interfaces)
 					token = NULL;
 				}
 			}
-			else
-				filterInterfaceEnd();
 		}
 		while (token != NULL);
 	}

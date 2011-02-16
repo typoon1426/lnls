@@ -5,7 +5,7 @@ CC = gcc
 LD = gcc
 
 # gcc flags
-GCCFLAGS = -D__EXPERIMENTAL__
+GCCFLAGS = -D__EXPERIMENTAL__ -ggdb
 
 # Compila tutto e genera l'eseguibile
 all: 

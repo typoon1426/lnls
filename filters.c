@@ -231,7 +231,38 @@ void filterAddInterface(unsigned int int_index)
 // XXX TODO
 void nBit2Mask(unsigned char *mask, unsigned int nBit, unsigned int len)
 {
+	unsigned int nByteSet = nBit/8;
+	unsigned int nRemainedBitSet = nBit%8;
+	unsigned int i = 0;
 
+	// COSA MOLTO SPORCA E BECERA	
+	if(nByteSet > len)
+		nByteSet = len;
+
+	if(nByteSet > 0)
+	{
+		for(i=0;i<nByteSet;i++)
+			*(mask + i) |= 0xFF;
+
+		if(nRemainedBitSet != 0)
+		{
+			unsigned int j = i;
+			unsigned char bitMask = 0x01;
+
+			for(i=0;i<nRemainedBitSet;i++)
+				*(mask + j) |= (bitMask << i);
+		}
+	}
+	else
+	{
+		if(nRemainedBitSet != 0)
+		{
+			unsigned char bitMask = 0x01;
+
+			for(i=0;i<nRemainedBitSet;i++)
+				*(mask + i) |= (bitMask << i);
+		}
+	}
 }
 
 int filterAddSubnet(char *subNet)

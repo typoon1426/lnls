@@ -31,6 +31,7 @@
 
 #include "logging.h"
 #include "nlSystem.h"
+#include "filters.h"
 
 #define DAEMONIZE_WEIGHT 1
 #define GROUPBYINT_WEIGHT 2
@@ -156,7 +157,7 @@ static void filterInterfaces(char *interfaces)
 		char *token = NULL;
 		unsigned int int_index = 0;
 
-		filterActive();
+		filtersInit();
 
 		do
 		{
@@ -196,7 +197,7 @@ static void filterSubnets(char *subnets)
 
 		char *token = NULL;
 
-		filterActive();
+		filtersInit();
 
 		do
 		{

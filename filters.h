@@ -22,6 +22,8 @@
  *		Filter module exported functions
  */
 
+#include "nlSystem.h"
+
 void filtersInit(void);
 int filter(struct neighBourBlock *neighBour);
 void filterSetAF(int af);

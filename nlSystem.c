@@ -42,6 +42,7 @@
 #include "hashHandlers.h"
 #include "cmdLineParse.h"
 #include "timer.h"
+#include "filters.h"
 
 static struct sockaddr_nl src_addr, dest_addr;
 static struct iovec iov;
@@ -166,7 +167,6 @@ static void mainLoop(void)
 						#else
 							// funzione che verifica nella hash table se è presente ed eventualmente logga secondo il logging configurato
 							pktSave(neighBour);
-							free(neighBour);
 						#endif		
 					}
 				}			

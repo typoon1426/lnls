@@ -22,7 +22,12 @@
  *		Filter module
  */
 
-// DA SPOSTARE DA QUALCHE ALTRA PARTE 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "nlSystem.h"
+
 #define INT_TABLE_SIZE 256
 #define NETMASK4_BIT_SIZE 33
 #define NETMASK6_BIT_SIZE 129
@@ -55,11 +60,11 @@ static unsigned char *intTable = NULL;
 static struct subNet4 *inet4SubnetList = NULL;
 static struct subNet6 *inet6SubnetList = NULL;
 static struct subNet4 **subNetMaskBit4 = NULL;
-static struct subNet4 **subNetMaskBit6 = NULL;
+static struct subNet6 **subNetMaskBit6 = NULL;
 
 void filtersInit(void)
 {
-	filters = SET;
+	filters = TRUE;
 	
 	// int structures
 	if(intTable == NULL)
@@ -101,7 +106,7 @@ static int verifyAF(unsigned char af)
 
 static int verifyInt(unsigned int if_index)
 {
-	if(intTable[int_index] == TRUE)
+	if(intTable[if_index] == TRUE)
 		return TRUE;
 	else 
 		return FALSE;
@@ -112,14 +117,18 @@ static int verifySubnet(struct neighBourBlock *neighBour)
 	if(neighBour->addressFamily == AF_INET)
 	{
 		struct subNet4 *temp = inet4SubnetList;
-		
+		unsigned int hostAddress = *((unsigned int *) neighBour->inetAddr);
+		unsigned int subMask = 0, subNetAddress = 0;
+
 		while(1) {
-			if((*((unsigned int *) neighBour->inetAddr)) & (*((unsigned int *) temp->inetMask)) == 
-			*((unsigned int *) temp->inetSubnet))
+			subMask = *((unsigned int *) temp->inetMask);
+			subNetAddress = *((unsigned int *) temp->inetSubnet);
+
+			if(((hostAddress) & (subMask)) == subNetAddress)
 				return TRUE;
 			else
 			{
-				if(temp->next != NULL)
+				if(temp->next != inet4SubnetList)
 					temp = temp->next;
 				else
 					return FALSE;
@@ -129,31 +138,39 @@ static int verifySubnet(struct neighBourBlock *neighBour)
 	else if(neighBour->addressFamily == AF_INET6)
 	{
 		struct subNet6 *temp = inet6SubnetList;
+		unsigned int hostAddress[] = {(*((unsigned int *) neighBour->inet6Addr)), 
+						(*(((unsigned int *) neighBour->inet6Addr)+1)), 
+						(*(((unsigned int *) neighBour->inet6Addr)+2)), 
+						(*(((unsigned int *) neighBour->inet6Addr)+3))};
+		unsigned int subMask[4], subNetAddress[4];
 
 		while(1) {
-			if(
-				(*((unsigned int *) neighBour->inet6Addr)) & (*((unsigned int *) temp->inet6Mask)) == 
-				*((unsigned int *) temp->inet6Subnet)) &&
+			subMask[0] = *((unsigned int *) temp->inet6Mask);
+			subMask[1] = *(((unsigned int *) temp->inet6Mask)+1);
+			subMask[2] = *(((unsigned int *) temp->inet6Mask)+2);
+			subMask[3] = *(((unsigned int *) temp->inet6Mask)+3);
+			subNetAddress[0] = *((unsigned int *) temp->inet6Subnet);
+			subNetAddress[1] = *(((unsigned int *) temp->inet6Subnet)+1);
+			subNetAddress[2] = *(((unsigned int *) temp->inet6Subnet)+2);
+			subNetAddress[3] = *(((unsigned int *) temp->inet6Subnet)+3);
 
-				(*(((unsigned int *) neighBour->inet6Addr))+1) & (*(((unsigned int *) temp->inet6Mask)+1)) == 
-				*(((unsigned int *) temp->inet6Subnet)+1)) &&
-
-				(*(((unsigned int *) neighBour->inet6Addr))+2) & (*(((unsigned int *) temp->inet6Mask)+2)) == 
-				*(((unsigned int *) temp->inet6Subnet)+2)) &&
-				
-				(*(((unsigned int *) neighBour->inet6Addr))+3) & (*(((unsigned int *) temp->inet6Mask)+3)) == 
-				*(((unsigned int *) temp->inet6Subnet)+3)) 
-			)
+			if( (((hostAddress[0]) & (subMask[0])) == subNetAddress[0]) &&
+				(((hostAddress[1]) & (subMask[1])) == subNetAddress[1]) &&
+				(((hostAddress[2]) & (subMask[2])) == subNetAddress[2]) &&
+				(((hostAddress[3]) & (subMask[3])) == subNetAddress[3]))
 				return TRUE;
 			else
 			{
-				if(temp->next != NULL)
+				if(temp->next != inet6SubnetList)
 					temp = temp->next;
 				else
 					return FALSE;
 			}
 		}
 	}
+
+	// NON DOVREBBE MAI RAGGIUNGERE QUESTO PUNTO, RETURN PER EVITARE WARNING
+	return FALSE;
 }
 
 // filtra i pacchetti secondo le direttive di filtro da riga di comando, interfacce e subnet
@@ -211,9 +228,15 @@ void filterAddInterface(unsigned int int_index)
 	intTable[int_index] = TRUE;
 }
 
+// XXX TODO
+void nBit2Mask(unsigned char *mask, unsigned int nBit, unsigned int len)
+{
+
+}
+
 int filterAddSubnet(char *subNet)
 {
-	int retval = FALSE, ret, len;
+	int ret, len;
 	unsigned int counter = 0, subnetMaskBitNumber;
 	char *token = NULL;
 	char *subnetElements[2];
@@ -263,18 +286,18 @@ int filterAddSubnet(char *subNet)
 		{
 			len = INETLEN;
 			new4 = malloc(sizeof(struct subNet4));
-			memcpy(new4->inetSubNet, ((struct sockaddr_in *) tmp->ai_addr)->sin_addr.s_addr, INETLEN);
+			memcpy(new4->inetSubnet, &(((struct sockaddr_in *) tmp->ai_addr)->sin_addr.s_addr), INETLEN);
 		}		
 		else if(tmp->ai_addrlen == sizeof(struct sockaddr_in6))
 		{
 			len = INET6LEN;
 			new6 = malloc(sizeof(struct subNet6));
-			memcpy(new6->inet6SubNet, ((struct sockaddr_in6 *) tmp->ai_addr)->sin6_addr.s6_addr, INET6LEN);
+			memcpy(new6->inet6Subnet, &(((struct sockaddr_in6 *) tmp->ai_addr)->sin6_addr.s6_addr), INET6LEN);
 		}	
 	}
 
 	// creo l'indirizzo della sottorete dopo la conversione del token sottorete in int
-	if(sscanf(subnetElements[1], "%u", subnetMaskBitNumber) < 0)
+	if(sscanf(subnetElements[1], "%u", &subnetMaskBitNumber) < 0)
 	{
 		// CAMBIARE QUI INSERIRE UNA MIGLIORE GESTIONE ERRORI DI QUESTA FUNZIONE, SE SI PUÒ
 		perror("sscanf");
@@ -301,7 +324,7 @@ int filterAddSubnet(char *subNet)
 			}
 
 			new4->nMaskBitNumber = subnetMaskBitNumber;
-			new4->inetMask = nBit2Mask(subnetMaskBitNumber);
+			nBit2Mask(new4->inetMask, subnetMaskBitNumber, INETLEN);
 		}
 		break;
 
@@ -323,7 +346,7 @@ int filterAddSubnet(char *subNet)
 			}
 			
 			new6->nMaskBitNumber = subnetMaskBitNumber;
-			new6->inet6Mask = nBit2Mask(subnetMaskBitNumber);
+			nBit2Mask(new6->inet6Mask, subnetMaskBitNumber, INET6LEN);
 		}		
 		break;
 	}
@@ -336,7 +359,7 @@ void filterSubnetEnd(void)
 	// v4
 	int i;
 
-	for(i=0;i<NETMASK_BIT_SIZE;i++)
+	for(i=0;i<NETMASK4_BIT_SIZE;i++)
 	{
 		if(subNetMaskBit4[i] != NULL)
 		{

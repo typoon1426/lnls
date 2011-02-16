@@ -58,8 +58,7 @@ const char usage[] = "Usage: nlSystem [OPTIONS]\n"
 
 static char programName[] = "nlSystem";
 
-static unsigned char commandLineRange = 0;
-static unsigned char daemonSet = 0;
+static unsigned char daemonSet = 0, commandLineRange = 0, afCalled = FALSE, interfacesCalled = FALSE, subnetsCalled = FALSE;
 
 static void printUsage(void)
 {
@@ -125,78 +124,104 @@ static void debug(void)
 #ifdef __EXPERIMENTAL__
 static void filterAddrFamily(char *addrFamily)
 {
-	// CONTROLLARE SE SI PUÒ FARE UNA VOLTA SOLA VISTO CHE LE FUNC FILTERSUBNETS, INTERFACES, ADDRESS FAMILY SONO CHIAMATE PER OGNI ARGOMENTO DI QUEL TIPO TROVATO
-	filterActive();
-
-	if(strcmp((const char *) addrFamily, "inet"))
-		filterSetAF(AF_INET);
-	else if(strcmp((const char *) addrFamily, "inet6"))
-		filterSetAF(AF_INET6);
-	else
-		// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
-		help();
 	
+	if(afCalled == FALSE)
+	{
+		afCalled = TRUE;
+
+		filtersInit();
+
+		if(strcmp((const char *) addrFamily, "inet"))
+			filterSetAF(AF_INET);
+		else if(strcmp((const char *) addrFamily, "inet6"))
+			filterSetAF(AF_INET6);
+		else
+			// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
+			help();
+	}
+	else
+	// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
+		help();
 }
 
 static void filterInterfaces(char *interfaces)
 {
-
-	/* parsa la stringa passata come argomento e restituisce il token 
-	alla funzione di conversione nome int-index che restituisce errore se l'int non esiste
-	*/
-	char *token = NULL;
-	unsigned int int_index = 0;
-
-	// CONTROLLARE SE SI PUÒ FARE UNA VOLTA SOLA VISTO CHE LE FUNC FILTERSUBNETS, INTERFACES, ADDRESS FAMILY SONO CHIAMATE PER OGNI ARGOMENTO DI QUEL TIPO TROVATO
-	filterActive();
-
-	do
+	if(interfacesCalled == FALSE)
 	{
-		if(token != NULL)
-			interfaces = NULL;
+		interfacesCalled = TRUE;
 
-		token = strtok(interfaces, ",");
-		int_index = if_nametoindex(token);
+		/* parsa la stringa passata come argomento e restituisce il token 
+		alla funzione di conversione nome int-index che restituisce errore se l'int non esiste
+		*/
+		char *token = NULL;
+		unsigned int int_index = 0;
 
-		if(int_index  != 0)
-			filterAddInterface(int_index);
-		else
+		filterActive();
+
+		do
 		{
-			// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
-			help();
-			token = NULL;
+			if(token != NULL)
+				interfaces = NULL;
+
+			token = strtok(interfaces, ",");
+			
+			if(token != NULL)
+			{
+				int_index = if_nametoindex(token);
+
+				if(int_index  != 0)
+					filterAddInterface(int_index);
+				else
+				{
+					// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
+					help();
+					token = NULL;
+				}
+			}
+			else
+				filterInterfaceEnd();
 		}
+		while (token != NULL);
 	}
-	while (token != NULL);
+	else
+	// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
+		help();
 }
 
 static void filterSubnets(char *subnets)
 {
-	char *token = NULL;
-
-	// CONTROLLARE SE SI PUÒ FARE UNA VOLTA SOLA VISTO CHE LE FUNC FILTERSUBNETS, INTERFACES, ADDRESS FAMILY SONO CHIAMATE PER OGNI ARGOMENTO DI QUEL TIPO TROVATO
-	filterActive();
-
-	do
+	if(subnetsCalled == FALSE)
 	{
-		if(token != NULL)
-			subnets = NULL;
+		subnetsCalled = TRUE;
 
-		token = strtok(subnets, ";");
-		
-		if(token != NULL)
+		char *token = NULL;
+
+		filterActive();
+
+		do
 		{
-			if(!filterAddSubnet(token))
+			if(token != NULL)
+				subnets = NULL;
+
+			token = strtok(subnets, ";");
+		
+			if(token != NULL)
 			{
-				// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
-				help();
-				token = NULL;
+				if(!filterAddSubnet(token))
+				{
+					// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
+					help();
+					token = NULL;
+				}
 			}
+			else
+				filterSubnetEnd();
 		}
-		else
-			filterSubnetEnd();
+		while (token != NULL);	
 	}
-	while (token != NULL);	
+	else
+	// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
+		help();
 }
 #endif
 

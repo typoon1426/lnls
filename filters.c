@@ -50,12 +50,111 @@ struct subNet6 {
 
 static int filters = FALSE, addressFamily = 0;
 static unsigned char filtersBitMap = 0x00;
-static unsigned char intTable[INT_TABLE_SIZE]; 
+static unsigned char *intTable = NULL; 
 
-static struct subNet4 *inet4SubnetList;
-static struct subNet6 *inet6SubnetList;
-static struct subNet4 *subNetMaskBit4[NETMASK4_BIT_SIZE]; // STRUTTURA PROVVISORIA DA ALLOCARE A RUNTIME
-static struct subNet6 *subNetMaskBit6[NETMASK6_BIT_SIZE]; // IDEM SOPRA
+static struct subNet4 *inet4SubnetList = NULL;
+static struct subNet6 *inet6SubnetList = NULL;
+static struct subNet4 **subNetMaskBit4 = NULL;
+static struct subNet4 **subNetMaskBit6 = NULL;
+
+void filtersInit(void)
+{
+	filters = SET;
+	
+	// int structures
+	if(intTable == NULL)
+	{
+		intTable = calloc(INT_TABLE_SIZE, sizeof(unsigned char));
+		if(intTable == NULL)
+		{
+			perror("calloc intTable");
+			exit(1);
+		}
+	}
+
+	if((subNetMaskBit4 == NULL) && (subNetMaskBit6 == NULL))
+	{
+		// subnet structures
+		subNetMaskBit4 = calloc(NETMASK4_BIT_SIZE, sizeof(struct subNet4 *));
+		if(subNetMaskBit4 == NULL)
+		{
+			perror("calloc subNetMaskBit4");
+			exit(1);
+		}
+
+		subNetMaskBit6 = calloc(NETMASK6_BIT_SIZE, sizeof(struct subNet6 *));
+		if(subNetMaskBit4 == NULL)
+		{
+			perror("calloc subNetMaskBit4");
+			exit(1);
+		}
+	}
+}
+
+static int verifyAF(unsigned char af)
+{
+	if(af == addressFamily)
+		return TRUE;
+	else
+		return FALSE;
+}
+
+static int verifyInt(unsigned int if_index)
+{
+	if(intTable[int_index] == TRUE)
+		return TRUE;
+	else 
+		return FALSE;
+}
+
+static int verifySubnet(struct neighBourBlock *neighBour)
+{
+	if(neighBour->addressFamily == AF_INET)
+	{
+		struct subNet4 *temp = inet4SubnetList;
+		
+		while(1) {
+			if((*((unsigned int *) neighBour->inetAddr)) & (*((unsigned int *) temp->inetMask)) == 
+			*((unsigned int *) temp->inetSubnet))
+				return TRUE;
+			else
+			{
+				if(temp->next != NULL)
+					temp = temp->next;
+				else
+					return FALSE;
+			}
+		}
+	}
+	else if(neighBour->addressFamily == AF_INET6)
+	{
+		struct subNet6 *temp = inet6SubnetList;
+
+		while(1) {
+			if(
+				(*((unsigned int *) neighBour->inet6Addr)) & (*((unsigned int *) temp->inet6Mask)) == 
+				*((unsigned int *) temp->inet6Subnet)) &&
+
+				(*(((unsigned int *) neighBour->inet6Addr))+1) & (*(((unsigned int *) temp->inet6Mask)+1)) == 
+				*(((unsigned int *) temp->inet6Subnet)+1)) &&
+
+				(*(((unsigned int *) neighBour->inet6Addr))+2) & (*(((unsigned int *) temp->inet6Mask)+2)) == 
+				*(((unsigned int *) temp->inet6Subnet)+2)) &&
+				
+				(*(((unsigned int *) neighBour->inet6Addr))+3) & (*(((unsigned int *) temp->inet6Mask)+3)) == 
+				*(((unsigned int *) temp->inet6Subnet)+3)) 
+			)
+				return TRUE;
+			else
+			{
+				if(temp->next != NULL)
+					temp = temp->next;
+				else
+					return FALSE;
+			}
+		}
+	}
+}
 
 // filtra i pacchetti secondo le direttive di filtro da riga di comando, interfacce e subnet
 int filter(struct neighBourBlock *neighBour)
@@ -73,31 +172,27 @@ int filter(struct neighBourBlock *neighBour)
 		break;
 		
 		case 3:
-			ret_val = verifySubnet(neighBour);
+			ret_val = (verifyAF(neighBour->addressFamily) && verifyInt(neighBour->if_index));
 		break;
 
 		case 4:
-			ret_val = verifyS
+			ret_val = verifySubnet(neighBour);
 		break;
 
 		case 5:
+			ret_val = (verifyAF(neighBour->addressFamily) && verifySubnet(neighBour));
 		break;
 
-		case 6;
+		case 6:
+			ret_val = (verifyInt(neighBour->if_index) && verifySubnet(neighBour));
 		break;
 	
 		case 7:
+			ret_val = (verifyAF(neighBour->addressFamily) && verifyInt(neighBour->if_index) && verifySubnet(neighBour));
 		break;
 	};
 
 	return ret_val;
-}
-
-void filtersInit(void)
-{
-	filters = SET;
-	
-	// DA ALLOCARE QUI LE STRUTTURE CHE SERVONO SOLO SE SONO ATTIVATI I FILTRI
 }
 
 void filterSetAF(int af)
@@ -283,7 +378,15 @@ void filterSubnetEnd(void)
 		}
 	}
 
-	// FARE FREE DELLE STRUTTURE PROVVISORIE
+	// free strutture provvisorie
+	free(subNetMaskBit4);
+	free(subNetMaskBit6);
+}
+
+void filterInterfaceEnd(void)
+{
+	// free strutture provvisorie
+	free(intTable);
 }
 
 int filtersActived(void)

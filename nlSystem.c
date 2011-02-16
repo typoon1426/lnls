@@ -163,6 +163,10 @@ static void mainLoop(void)
 						else
 							// funzione che verifica nella hash table se è presente ed eventualmente logga secondo il logging configurato
 							pktSave(neighBour);
+						#else
+							// funzione che verifica nella hash table se è presente ed eventualmente logga secondo il logging configurato
+							pktSave(neighBour);
+							free(neighBour);
 						#endif		
 					}
 				}			

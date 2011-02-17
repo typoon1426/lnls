@@ -1,6 +1,6 @@
-/*   Linux Neighbour logging system
+/*   Linux Neighbour logging system Version 0.1
  *   developed as part of VirtualSquare project
- *  
+ *   
  *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
  *   
  *   This program is free software; you can redistribute it and/or modify
@@ -153,7 +153,7 @@ static void mainLoop(void)
 					else
 					{
 						#ifdef __EXPERIMENTAL__
-						// controlla se il pacchetto corrisponde all'eventuale specifica di interfaccia e subnet in riga di comando
+						// test if packet match filters 
 						// FILTERSACTIVED == TRUE && FILTER == FALSE
 
 						if((filtersActived()) && (filter(neighBour) == FALSE))
@@ -162,11 +162,11 @@ static void mainLoop(void)
 						}						
 						else
 						{
-							// funzione che verifica nella hash table se è presente ed eventualmente logga secondo il logging configurato
+							// test if packet is present in hash table and log if necessary
 							pktSave(neighBour);
 						}
 						#else
-							// funzione che verifica nella hash table se è presente ed eventualmente logga secondo il logging configurato
+							// test if packet is present in hash table and log if necessary
 							pktSave(neighBour);
 						#endif		
 					}
@@ -176,7 +176,6 @@ static void mainLoop(void)
 	}
 }
 
-// XXX VERIFICARE SIG NON SERVE FORSE QUINDI MODIFICARE STAMPE
 static void defSigHandler(int sig)
 {
 	switch (getMode())

@@ -1,6 +1,6 @@
-/*   Linux Neighbour logging system
+/*   Linux Neighbour logging system Version 0.1
  *   developed as part of VirtualSquare project
- *  
+ *   
  *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
  *   
  *   This program is free software; you can redistribute it and/or modify
@@ -68,6 +68,7 @@ static int verifyAF(unsigned char af) __attribute__((always_inline));
 static int verifyInt(unsigned int if_index) __attribute__((always_inline));
 static int verifySubnet(struct neighBourBlock *neighBour) __attribute__((always_inline));
 
+// initialize filters specific data structures
 void filtersInit(void)
 {
 	filters = TRUE;
@@ -102,6 +103,7 @@ void filtersInit(void)
 	}
 }
 
+// verify if parameter is equal to saved addressfamily
 static int verifyAF(unsigned char af)
 {
 	if(af == addressFamily)
@@ -110,6 +112,7 @@ static int verifyAF(unsigned char af)
 		return FALSE;
 }
 
+// verify if interface index number is saved in the array of interface indexes
 static int verifyInt(unsigned int if_index)
 {
 	if(intTable[if_index] == TRUE)
@@ -118,6 +121,7 @@ static int verifyInt(unsigned int if_index)
 		return FALSE;
 }
 
+// verify if subnet of received packet is saved in filters lists
 static int verifySubnet(struct neighBourBlock *neighBour)
 {
 	if(neighBour->addressFamily == AF_INET)
@@ -185,11 +189,11 @@ static int verifySubnet(struct neighBourBlock *neighBour)
 			return FALSE;
 	}
 
-	// NON DOVREBBE MAI RAGGIUNGERE QUESTO PUNTO, RETURN PER EVITARE WARNING
+	// code never reached, return to remove gcc warning
 	return FALSE;
 }
 
-// filtra i pacchetti secondo le direttive di filtro da riga di comando, interfacce e subnet
+// filter packets with command line defined rules 
 int filter(struct neighBourBlock *neighBour)
 {
 	int ret_val = TRUE;
@@ -246,13 +250,14 @@ void filterAddInterface(unsigned int int_index)
 	intTable[int_index] = TRUE;
 }
 
+// convert netmask cidr notation to subnetmask notation
 static void nBit2Mask(unsigned char *mask, unsigned int nBit, unsigned int len)
 {
 	unsigned int nByteSet = nBit/8;
 	unsigned int nRemainedBitSet = nBit%8;
 	unsigned int i = 0;
 
-	// COSA MOLTO SPORCA E BECERA	
+	// dirty evil	
 	if(nByteSet > len)
 		nByteSet = len;
 
@@ -312,18 +317,18 @@ int filterAddSubnet(char *subNet)
 			}
 			else
 			{
-				// RITORNO FALSO PERCHÈ HO PIÙ DI DUE TOKEN SUBNET MALFORMATA
+				// RETURN FALSE, MORE THAN TWO TOKENS, MALFORMED ARGUMENT
 				return FALSE;
 			}
 		}
 	}
 	while (token != NULL);	
 
-	// converto l'indirizzo da ascii a network byte order
+	// convert ascii address to network byte order
 	ret = getaddrinfo(subnetElements[0], NULL, NULL, &info);
 	if (ret != 0)
   	{   
-		// CAMBIARE QUI INSERIRE UNA MIGLIORE GESTIONE ERRORI DI QUESTA FUNZIONE
+		// TODO BETTER ERRORS HANDLING
      		fprintf(stderr, "error in getaddrinfo: %s\n", gai_strerror(ret));
      		return FALSE; 
   	}   
@@ -344,10 +349,10 @@ int filterAddSubnet(char *subNet)
 		}	
 	}
 
-	// creo l'indirizzo della sottorete dopo la conversione del token sottorete in int
+	// convert cidr token to unsigned int
 	if(sscanf(subnetElements[1], "%u", &subnetMaskBitNumber) < 0)
 	{
-		// CAMBIARE QUI INSERIRE UNA MIGLIORE GESTIONE ERRORI DI QUESTA FUNZIONE, SE SI PUÒ
+		// TODO BETTER ERRORS HANDLING
 		perror("sscanf");
 		return FALSE;
 	}
@@ -402,6 +407,7 @@ int filterAddSubnet(char *subNet)
 	return TRUE;
 }
 
+// create only two list of subnet, ordered by more generic to more specific es: 255.0.0.0,255.255.0.0,255.255.255.0
 void filterSubnetEnd(void)
 {
 	// v4
@@ -449,7 +455,7 @@ void filterSubnetEnd(void)
 		}
 	}
 
-	// free strutture provvisorie
+	// free of temp structures
 	free(subNetMaskBit4);
 	free(subNetMaskBit6);
 }

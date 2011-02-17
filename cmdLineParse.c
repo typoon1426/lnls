@@ -1,6 +1,6 @@
-/*   Linux Neighbour logging system
+/*   Linux Neighbour logging system Version 0.1
  *   developed as part of VirtualSquare project
- *  
+ *   
  *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
  *   
  *   This program is free software; you can redistribute it and/or modify
@@ -44,20 +44,19 @@
 #define MINRANGE 10
 #define MAXRANGE 15
 
-// DA MODIFICARE LA SPIEGAZIONE DEL DEBUG
-const char usage[] = "Usage: nlSystem [OPTIONS]\n"
+const char usage[] = "Usage: nlogger [OPTIONS]\n"
 			"Runs Neighbour Logging System.\n"
-			"  -h, --help                 Display this help and exit\n"
-			"  -d, --daemonize            Run on background, not valid alone\n"
-			"  -D, --debug                Print all packet log on standard output, without timing handling, this option must be used alone\n" 
-			"  -O, --stdout               Print all packet log on standard output, this option must be used alone\n"
-			"  -s, --syslog               Print all packet log on syslog\n"
-			"  -F, --filelog filename     Print all packet log on logfile\n"
-			"  -A, --addrfamily           Select address family of packets according to argument\n"
-			"  -I, --interfaces	      Select interfaces of packets according to argument\n"
-			"  -S, --subnets	      Select subnets of packets according to argument\n";
+			"  -h, --help                 		Display this help and exit\n"
+			"  -d, --daemonize            		Run on background. Optional argument, not valid with debug, help and stdout\n"
+			"  -D, --debug                		Print all packet log on standard output, without timing handling. Not valid with other options.\n" 
+			"  -O, --stdout               		Print all packet log on standard output, not valid with: daemonize, debug, filelog and syslog.\n"
+			"  -s, --syslog               		Print all packet log on syslog, not valid with: debug, stdout and filelog\n"
+			"  -F, --filelog filename     		Print all packet log on logfile, not valid with: debug, stdout and syslog\n"
+			"  -A, --addrfamily inet|inet6		Force to log only packets of address family selected.\n"
+			"  -I, --interfaces int1,int2,..   	Force to log only packets from interfaces selected.\n"
+			"  -S, --subnets sub/mask,sub/mask1,.. 	Force to log only packets of subnets selected.\n";
 
-static char programName[] = "nlSystem";
+static char programName[] = "nlogger";
 
 static unsigned char daemonSet = 0, commandLineRange = 0, afCalled = FALSE, interfacesCalled = FALSE, subnetsCalled = FALSE;
 
@@ -135,23 +134,19 @@ static void filterAddrFamily(char *addrFamily)
 		else if(strcmp((const char *) addrFamily, "inet6") == 0)
 			filterSetAF(AF_INET6);
 		else
-			// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
 			help();
 	}
 	else
-	// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
 		help();
 }
 
+// parse argument and call function to add interfaces to filters
 static void filterInterfaces(char *interfaces)
 {
 	if(interfacesCalled == FALSE)
 	{
 		interfacesCalled = TRUE;
 
-		/* parsa la stringa passata come argomento e restituisce il token 
-		alla funzione di conversione nome int-index che restituisce errore se l'int non esiste
-		*/
 		char *token = NULL;
 		char *newSubToken = NULL;
 		unsigned int int_index = 0;
@@ -173,7 +168,6 @@ static void filterInterfaces(char *interfaces)
 					filterAddInterface(int_index);
 				else
 				{
-					// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
 					help();
 					token = NULL;
 				}
@@ -182,13 +176,12 @@ static void filterInterfaces(char *interfaces)
 		while (token != NULL);
 	}
 	else
-	// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
 		help();
 }
 
 static void filterSubnets(char *subNetsArg)
 {
-	char *subnets = subNetsArg; // VEDERE SE SERVE
+	char *subnets = subNetsArg;
 
 	if(subnetsCalled == FALSE)
 	{
@@ -204,7 +197,6 @@ static void filterSubnets(char *subNetsArg)
 		{			
 			if(!filterAddSubnet(token))
 			{
-				// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
 				help();
 				token = NULL;
 			}
@@ -218,7 +210,6 @@ static void filterSubnets(char *subNetsArg)
 		}	
 	}
 	else
-	// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
 		help();
 }
 #endif

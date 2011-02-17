@@ -1,6 +1,6 @@
-/*   Linux Neighbour logging system
+/*   Linux Neighbour logging system Version 0.1
  *   developed as part of VirtualSquare project
- *  
+ *   
  *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
  *   
  *   This program is free software; you can redistribute it and/or modify
@@ -47,7 +47,7 @@ static struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr)
 	struct rtattr 	*netAddr = (struct rtattr *) (NLMSG_DATA(nlMsgHdr) + sizeof(struct ndmsg)), 
 			*linkAddr = RTA_NEXT(netAddr, nlMsgHdr->nlmsg_len);
 
-	// verify rtattr integrity VEDERE SE SERVE DAVVERO
+	// verify rtattr integrity 
 	if((!RTA_OK(netAddr, nlMsgHdr->nlmsg_len)) || (!RTA_OK(linkAddr, nlMsgHdr->nlmsg_len)))
 		return newNeigh;
 	
@@ -84,7 +84,7 @@ static struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr)
 	// set link local addr
 	memcpy(newNeigh->etherAddr, (unsigned char *) RTA_DATA(linkAddr), ETH_ALEN);
 
-	// set last seen time_t struct DA VEDERE SE SOSTITUIRE CON QTIME DI VDE
+	// set last seen time_t struct 
 	newNeigh->last_seen = time(NULL);
 
 	return newNeigh;

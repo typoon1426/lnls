@@ -191,23 +191,59 @@ static void filterInterfaces(char *interfaces)
 		help();
 }
 
-static void filterSubnets(char *subnets)
+static void filterSubnets(char *subNetsArg)
 {
+	char *subnets = subNetsArg; // VEDERE SE SERVE
+
+	printf("argument: %s\n", subnets);
+
 	if(subnetsCalled == FALSE)
 	{
-		subnetsCalled = TRUE;
-
 		char *token = NULL;
+		char *newSubToken = NULL;
 
+		subnetsCalled = TRUE;
 		filtersInit();
 
-		do
+		token = strtok_r(subnets, ",", &newSubToken);
+
+		while(token != NULL)
+		{
+			printf("subnets prima: %s\n", subnets);
+
+			
+			if(!filterAddSubnet(token))
+			{
+				// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
+				help();
+				token = NULL;
+			}
+	
+			//DEBUG
+			printf("token dopo: %s\n", token);
+
+			token = strtok_r(NULL, ",", &newSubToken);
+
+			//DEBUG
+			printf("token dopo dopo: %s\n", token);
+		}
+
+		if(token == NULL)
+		{
+			filterSubnetEnd();
+		}
+
+		/*do
 		{
 			if(token != NULL)
 				subnets = NULL;
 
-			token = strtok(subnets, ";");
-		
+			printf("subnets: %s\n", subnets);
+
+			token = strtok(subnets, ",");
+			
+			printf("token ptr: %s\n", token);
+
 			if(token != NULL)
 			{
 				if(!filterAddSubnet(token))
@@ -216,11 +252,17 @@ static void filterSubnets(char *subnets)
 					help();
 					token = NULL;
 				}
+
+				//DEBUG
+				printf("token: %s\n", token);
 			}
 			else
 				filterSubnetEnd();
+
+			printf("token 2: %s\n", token);
+			printf("ciclo\n");
 		}
-		while (token != NULL);	
+		while (token != NULL); */	
 	}
 	else
 	// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE

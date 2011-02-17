@@ -289,7 +289,7 @@ int filterAddSubnet(char *subNet)
 {
 	int ret, len;
 	unsigned int counter = 0, subnetMaskBitNumber;
-	char *token = NULL;
+	char *token = NULL, *subNetSave = subNet, *newSubToken = NULL;
 	char *subnetElements[2];
 	struct addrinfo *info;
 	struct addrinfo *tmp;
@@ -302,9 +302,11 @@ int filterAddSubnet(char *subNet)
 	do
 	{
 		if(token != NULL)
-			subNet = NULL;
+			subNetSave = NULL;
 
-		token = strtok(subNet, "/");
+		token = strtok_r(subNetSave, "/", &newSubToken);
+
+		printf("token interno: %s\n", token);
 		
 		if(token != NULL)
 		{

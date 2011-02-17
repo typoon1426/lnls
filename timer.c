@@ -31,6 +31,10 @@
 
 static sigset_t oldState, maskedState;
 
+// always inline functions prototype
+void unMask(void) __attribute__((always_inline));
+void mask(void) __attribute__((always_inline));
+
 void unMask(void)
 {
 	

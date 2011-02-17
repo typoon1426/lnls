@@ -39,6 +39,7 @@ static int ip_gc_expire = IP_GC_EXPIRE;
 // always inline prototype
 static int ip_hash(int len,unsigned char *addr) __attribute__((always_inline));
 static void delete_hash_entry(struct neighBourBlock *old) __attribute__((always_inline));
+static void ip_gc(struct neighBourBlock *e, void *now) __attribute__((always_inline));
 
 /* hash function */
 static int ip_hash(int len,unsigned char *addr)

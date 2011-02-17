@@ -35,6 +35,10 @@
 
 #include "nlSystem.h"
 
+// always inline functions prototype
+int packetTest(struct nlmsghdr *nlMsgHdr, int len) __attribute__((always_inline));
+
+
 static struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr)
 {
 	struct neighBourBlock *newNeigh = NULL;

@@ -106,8 +106,8 @@ static int verifyAF(unsigned char af)
 
 static int verifyInt(unsigned int if_index)
 {
-	printf("codice interfaccia arrivato %u\n", if_index);
-	printf("interfaccia selezionata array %u\n", intTable[if_index]);
+	//printf("codice interfaccia arrivato %u\n", if_index);
+	//printf("interfaccia selezionata array %u\n", intTable[if_index]);
 	
 	if(intTable[if_index] == TRUE)
 		return TRUE;
@@ -197,8 +197,8 @@ int filter(struct neighBourBlock *neighBour)
 		{
 			ret_val = verifyAF(neighBour->addressFamily);
 			// DEBUG
-			printf("address family %u\n", neighBour->addressFamily);
-			printf("address family memorizzato %u\n", addressFamily);
+			//printf("address family %u\n", neighBour->addressFamily);
+			//printf("address family memorizzato %u\n", addressFamily);
 		}		
 		break;
 
@@ -244,8 +244,8 @@ void filterAddInterface(unsigned int int_index)
 		filtersBitMap |= FILTER_INT; 
 
 	intTable[int_index] = TRUE;
-	printf("codice int prima %u\n", int_index);
-	printf("interfaccia settata array %u\n", intTable[int_index]);
+//	printf("codice int prima %u\n", int_index);
+//	printf("interfaccia settata array %u\n", intTable[int_index]);
 }
 
 // XXX TODO
@@ -306,7 +306,7 @@ int filterAddSubnet(char *subNet)
 
 		token = strtok_r(subNetSave, "/", &newSubToken);
 
-		printf("token interno: %s\n", token);
+		//printf("token interno: %s\n", token);
 		
 		if(token != NULL)
 		{
@@ -348,7 +348,7 @@ int filterAddSubnet(char *subNet)
 			memcpy(new6->inet6Subnet, &(((struct sockaddr_in6 *) tmp->ai_addr)->sin6_addr.s6_addr), INET6LEN);
 			
 			// DEBUG
-			printf("%02hhx", *((unsigned char *) new6->inet6Subnet));
+	/*		printf("%02hhx", *((unsigned char *) new6->inet6Subnet));
 			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+1));
 			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+2));
 			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+3));
@@ -363,7 +363,7 @@ int filterAddSubnet(char *subNet)
 			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+12));
 			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+13));
 			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+14));
-			printf("%02hhx\n", *(((unsigned char *) new6->inet6Subnet)+15));
+			printf("%02hhx\n", *(((unsigned char *) new6->inet6Subnet)+15));*/
 		}	
 	}
 

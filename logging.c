@@ -47,12 +47,24 @@ static char lineBuf[1024];
 static FILE *logFile = NULL; 
 static unsigned char mode = 0;
 
+// always inline functions prototipe
+unsigned char getMode(void) __attribute__((always_inline));
+
+
 static void etherAddr2Str(const unsigned char *ether, char *buf, int srclen, int dstlen)
 {
 	int i, w = 0;
-	for(i=0; i<srclen; i++)
+	/*for(i=0; i<srclen; i++)
 	{
 		w += snprintf(buf+w, dstlen, "%02hhx", *((unsigned char *) ether+i));
+	}*/
+
+	for(i=0; i<srclen; i++)
+	{
+		if(w == 0)
+			w += snprintf(buf+w, dstlen, "%02hhx", *((unsigned char *) ether+i));
+		else
+			w += snprintf(buf+w, dstlen, ":%02hhx", *((unsigned char *) ether+i));
 	}
 }
 

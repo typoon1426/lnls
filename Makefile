@@ -5,7 +5,7 @@ CC = gcc
 LD = gcc
 
 # gcc compile flags
-GCCFLAGS = -D__EXPERIMENTAL__ 
+GCCFLAGS = -D__EXPERIMENTAL__ -D__DEBUG1__
 
 # gcc linker flags
 LDFLAGS = 

@@ -91,7 +91,6 @@ static void initStruct(void)
 // bind socket
 static void socketBind(void)
 {
-	int ret;
 
 	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
  
@@ -101,9 +100,7 @@ static void socketBind(void)
 		exit(1);
 	}
 
-	ret = bind(fd, (struct sockaddr*) &src_addr, sizeof(src_addr));
-
-	if(ret < 0)
+	if(bind(fd, (struct sockaddr*) &src_addr, sizeof(src_addr)) < 0)
 	{
 		perror("Bind");
 		exit(1);
@@ -120,12 +117,11 @@ static void pktSave(struct neighBourBlock *neighBour)
 
 	ret = neighHashFindAdd(neighBour);
 	
+	// unmask SIGALRM 
 	unMask();
 
 	if(ret == LOG)
-	{
 		logWrite(neighBour);
-	}
 }
 
 static void mainLoop(void)
@@ -162,14 +158,10 @@ static void mainLoop(void)
 
 						if((filtersActived()) && (filter(neighBour) == FALSE))
 						{
-							// DEBUG
-						//	printf("Filtri attivi, pacchetto filtrato\n");
 							free(neighBour);
 						}						
 						else
 						{
-							// DEBUG
-						//	printf("Filtri non attivi, o pacchetto non filtrato\n");
 							// funzione che verifica nella hash table se è presente ed eventualmente logga secondo il logging configurato
 							pktSave(neighBour);
 						}

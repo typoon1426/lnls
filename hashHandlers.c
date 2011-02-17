@@ -31,7 +31,7 @@
 #include "nlSystem.h"
 
 /* hash table of recently seen ip addresses, collision lists are double linked */
-#define IP_HASH_SIZE 1024 // ATTENZIONE FUTURA IMPLEMENTAZIONE ARRAY DINAMICO
+#define IP_HASH_SIZE 1024 
 
 struct neighBourBlock *hashTable[IP_HASH_SIZE];
 static int ip_gc_expire = IP_GC_EXPIRE;
@@ -157,4 +157,10 @@ void ip_hash_gc(void)
 	time_t t = time(NULL);
 
 	ip_for_all_hash(ip_gc, &t);
+}
+
+/* set ip_gc_expire interval*/
+void setIpGcExpire(int expireTime)
+{
+	ip_gc_expire = expireTime;
 }

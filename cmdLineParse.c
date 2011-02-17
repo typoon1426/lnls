@@ -88,7 +88,6 @@ static void daemonize(void)
 {
 	// add weight
 	commandLineRange += DAEMONIZE_WEIGHT;
-	
 	daemonSet = 1;
 }
 
@@ -118,7 +117,6 @@ static void debug(void)
 {
 	// add weight
 	commandLineRange += DEBUG_WEIGHT;
-
 	setMode(DEBUG);
 }
 
@@ -130,7 +128,7 @@ static void filterAddrFamily(char *addrFamily)
 	{
 		afCalled = TRUE;
 
-		filtersInit(); // OTTIMIZZARE PERCHÈ QUA C'È FILTERSINIT PUÒ ANCHE NON ESSERCI
+		filtersInit();
 
 		if(strcmp((const char *) addrFamily, "inet") == 0)
 			filterSetAF(AF_INET);
@@ -155,6 +153,7 @@ static void filterInterfaces(char *interfaces)
 		alla funzione di conversione nome int-index che restituisce errore se l'int non esiste
 		*/
 		char *token = NULL;
+		char *newSubToken = NULL;
 		unsigned int int_index = 0;
 
 		filtersInit();
@@ -164,16 +163,12 @@ static void filterInterfaces(char *interfaces)
 			if(token != NULL)
 				interfaces = NULL;
 
-			token = strtok(interfaces, ",");
+			token = strtok_r(interfaces, ",", &newSubToken);
 			
 			if(token != NULL)
 			{
-				// DEBUG
-				//printf("interfaccia inserita %s\n", token);
 				int_index = if_nametoindex(token);
-
-				//printf("codice interfaccia %u\n", int_index);				
-
+		
 				if(int_index  != 0)
 					filterAddInterface(int_index);
 				else
@@ -195,8 +190,6 @@ static void filterSubnets(char *subNetsArg)
 {
 	char *subnets = subNetsArg; // VEDERE SE SERVE
 
-//	printf("argument: %s\n", subnets);
-
 	if(subnetsCalled == FALSE)
 	{
 		char *token = NULL;
@@ -208,24 +201,15 @@ static void filterSubnets(char *subNetsArg)
 		token = strtok_r(subnets, ",", &newSubToken);
 
 		while(token != NULL)
-		{
-//			printf("subnets prima: %s\n", subnets);
-
-			
+		{			
 			if(!filterAddSubnet(token))
 			{
 				// PRE ORA CHIAMA HELP MA SAREBBE MEGLIO STAMPARGLI IL SUO MESSAGGIO DI ERRORE
 				help();
 				token = NULL;
 			}
-	
-			//DEBUG
-//			printf("token dopo: %s\n", token);
 
 			token = strtok_r(NULL, ",", &newSubToken);
-
-			//DEBUG
-//			printf("token dopo dopo: %s\n", token);
 		}
 
 		if(token == NULL)
@@ -238,31 +222,6 @@ static void filterSubnets(char *subNetsArg)
 		help();
 }
 #endif
-
-// VERIFICARE SE SERVE QUESTA FUNZIONE O BASTA LASCIARE IL CODICE NEL CHIAMANTE
-// verify if the sum of weight is correct and if daemon is set daemonize the process
-static void verifyCmd(void)
-{
-	if((commandLineRange > MINRANGE) && (commandLineRange < MAXRANGE))
-	{
-		if(daemonSet == 1)
-		{
-			if(daemon(0, 0) < 0)
-			{
-				perror("daemon :");
-				exit(1);
-			}
-		}
-		else
-			return;
-	}
-	else
-	{
-		printUsage();
-		exit(0);
-	}
-	
-}
 
 // parsing command line with getopt_long function
 void parseCmdLine(int argc, char *argv[])
@@ -337,5 +296,20 @@ void parseCmdLine(int argc, char *argv[])
 		}
 	}
 	
-	verifyCmd();
+	if((commandLineRange > MINRANGE) && (commandLineRange < MAXRANGE))
+	{
+		if(daemonSet == 1)
+		{
+			if(daemon(0, 0) < 0)
+			{
+				perror("daemon :");
+				exit(1);
+			}
+		}
+	}
+	else
+	{
+		printUsage();
+		exit(0);
+	}
 }

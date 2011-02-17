@@ -37,7 +37,7 @@
 
 // always inline functions prototype
 int packetTest(struct nlmsghdr *nlMsgHdr, int len) __attribute__((always_inline));
-
+static struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr) __attribute__((always_inline));
 
 static struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr)
 {
@@ -49,27 +49,11 @@ static struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr)
 
 	// verify rtattr integrity VEDERE SE SERVE DAVVERO
 	if((!RTA_OK(netAddr, nlMsgHdr->nlmsg_len)) || (!RTA_OK(linkAddr, nlMsgHdr->nlmsg_len)))
-	#ifdef __DEBUG1__
-	{
-		printf("rta-ok fail on netaddr or rta-ok fail on linkaddr\n");
 		return newNeigh;
-	}
-	#endif
-	#ifndef __DEBUG1__
-		return newNeigh;
-	#endif
 	
 	// verify that RT-struct are of type 1 and 2 (network and link local address)
 	if((netAddr->rta_type != NDA_DST) || (linkAddr->rta_type != NDA_LLADDR))
-	#ifdef __DEBUG1__
-	{
-		printf("rta-type != network address or link local address\n");
 		return newNeigh;
-	}
-	#endif
-	#ifndef __DEBUG1__
-		return newNeigh;
-	#endif
 
 	// allocate a struct neighBlock to return
 	newNeigh = malloc(sizeof(struct neighBourBlock));
@@ -93,13 +77,9 @@ static struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr)
 
 	// set net level address
 	if(neighMsg->ndm_family == AF_INET)
-	{
 		memcpy(newNeigh->inetAddr, (unsigned char *) RTA_DATA(netAddr), INETLEN);
-	}
 	else if(neighMsg->ndm_family == AF_INET6)
-	{
 		memcpy(newNeigh->inet6Addr, (unsigned char *) RTA_DATA(netAddr), INET6LEN);
-	}
 	
 	// set link local addr
 	memcpy(newNeigh->etherAddr, (unsigned char *) RTA_DATA(linkAddr), ETH_ALEN);
@@ -110,7 +90,6 @@ static struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr)
 	return newNeigh;
 }
 
-// SISTEMARE STA FUNZIONE LA STORIA DEI RETURN
 struct neighBourBlock *parseNlPacket(struct nlmsghdr *nlMsgHdr)
 {
 	// verify if received packet is from kernel, with pid 0
@@ -119,7 +98,6 @@ struct neighBourBlock *parseNlPacket(struct nlmsghdr *nlMsgHdr)
 		// message sent from kernel
 		
 		// select only RTM_NEWNEIGH packet type
-		// TODO ADD RT PACKET'S INTEGRITY CHECK
 		if(nlMsgHdr->nlmsg_type == RTM_NEWNEIGH)
 		{
 			return packetConverter(nlMsgHdr);

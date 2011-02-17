@@ -54,10 +54,6 @@ unsigned char getMode(void) __attribute__((always_inline));
 static void etherAddr2Str(const unsigned char *ether, char *buf, int srclen, int dstlen)
 {
 	int i, w = 0;
-	/*for(i=0; i<srclen; i++)
-	{
-		w += snprintf(buf+w, dstlen, "%02hhx", *((unsigned char *) ether+i));
-	}*/
 
 	for(i=0; i<srclen; i++)
 	{
@@ -68,7 +64,6 @@ static void etherAddr2Str(const unsigned char *ether, char *buf, int srclen, int
 	}
 }
 
-// STAMPARE EVENTUALMENTE ANCHE INTERFACE NAME O INTERFACE INDEX
 static void neigh2Ascii(struct neighBourBlock *neigh, char *printOutBuf, int outLen)
 {
 	char netAddr[ASCII_BUF];
@@ -85,7 +80,6 @@ static void neigh2Ascii(struct neighBourBlock *neigh, char *printOutBuf, int out
 		memset(&inet, 0, sizeof(inet));
 
 		inet.sin_family = AF_INET;
-		//inet.sin_addr.s_addr = *((unsigned int *) neigh->inetAddr); // FORSE CI VUOLE HOST TO INET 
 		memcpy(&(inet.sin_addr.s_addr), neigh->inetAddr, INETLEN);
 
 		if(getnameinfo((struct sockaddr *) &inet, sizeof(inet), netAddr, sizeof(netAddr), 0, 0, NI_NUMERICHOST) < 0)
@@ -101,8 +95,7 @@ static void neigh2Ascii(struct neighBourBlock *neigh, char *printOutBuf, int out
 		struct sockaddr_in6 inet6;
 		memset(&inet6, 0, sizeof(inet6));
 
-		inet6.sin6_family = AF_INET6;
-		//inet6.sin6_addr.s6_addr = neigh->inet6Addr;		
+		inet6.sin6_family = AF_INET6;		
 		memcpy(&(inet6.sin6_addr.s6_addr), neigh->inetAddr, INET6LEN);
 
 		if(getnameinfo((struct sockaddr *) &inet6, sizeof(inet6), netAddr, sizeof(netAddr), 0, 0, NI_NUMERICHOST) < 0)
@@ -132,7 +125,6 @@ static void str2FdPrint(struct neighBourBlock *neigh, FILE *fd)
 	timeStamp(&(neigh->last_seen), timeStampBuf, sizeof(timeStampBuf));
 
 	neigh2Ascii(neigh, str, sizeof(str));
-
 	fprintf(fd, "[ %s ] %s\n", timeStampBuf, str);
 }
 

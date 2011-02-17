@@ -27,6 +27,7 @@
 #include <string.h>
 
 #include "nlSystem.h"
+#include "filters.h"
 
 #define INT_TABLE_SIZE 256
 #define NETMASK4_BIT_SIZE 33
@@ -62,6 +63,11 @@ static struct subNet6 *inet6SubnetList = NULL;
 static struct subNet4 **subNetMaskBit4 = NULL;
 static struct subNet6 **subNetMaskBit6 = NULL;
 
+// always inline functions prototipe
+static int verifyAF(unsigned char af) __attribute__((always_inline));
+static int verifyInt(unsigned int if_index) __attribute__((always_inline));
+static int verifySubnet(struct neighBourBlock *neighBour) __attribute__((always_inline));
+
 void filtersInit(void)
 {
 	filters = TRUE;
@@ -77,9 +83,9 @@ void filtersInit(void)
 		}
 	}
 
+	// subnet structures
 	if((subNetMaskBit4 == NULL) && (subNetMaskBit6 == NULL))
 	{
-		// subnet structures
 		subNetMaskBit4 = calloc(NETMASK4_BIT_SIZE, sizeof(struct subNet4 *));
 		if(subNetMaskBit4 == NULL)
 		{
@@ -106,9 +112,6 @@ static int verifyAF(unsigned char af)
 
 static int verifyInt(unsigned int if_index)
 {
-	//printf("codice interfaccia arrivato %u\n", if_index);
-	//printf("interfaccia selezionata array %u\n", intTable[if_index]);
-	
 	if(intTable[if_index] == TRUE)
 		return TRUE;
 	else 
@@ -196,9 +199,6 @@ int filter(struct neighBourBlock *neighBour)
 		case 1:
 		{
 			ret_val = verifyAF(neighBour->addressFamily);
-			// DEBUG
-			//printf("address family %u\n", neighBour->addressFamily);
-			//printf("address family memorizzato %u\n", addressFamily);
 		}		
 		break;
 
@@ -244,12 +244,9 @@ void filterAddInterface(unsigned int int_index)
 		filtersBitMap |= FILTER_INT; 
 
 	intTable[int_index] = TRUE;
-//	printf("codice int prima %u\n", int_index);
-//	printf("interfaccia settata array %u\n", intTable[int_index]);
 }
 
-// XXX TODO
-void nBit2Mask(unsigned char *mask, unsigned int nBit, unsigned int len)
+static void nBit2Mask(unsigned char *mask, unsigned int nBit, unsigned int len)
 {
 	unsigned int nByteSet = nBit/8;
 	unsigned int nRemainedBitSet = nBit%8;
@@ -306,8 +303,6 @@ int filterAddSubnet(char *subNet)
 
 		token = strtok_r(subNetSave, "/", &newSubToken);
 
-		//printf("token interno: %s\n", token);
-		
 		if(token != NULL)
 		{
 			if(counter < 2)
@@ -346,24 +341,6 @@ int filterAddSubnet(char *subNet)
 			len = INET6LEN;
 			new6 = malloc(sizeof(struct subNet6));
 			memcpy(new6->inet6Subnet, &(((struct sockaddr_in6 *) tmp->ai_addr)->sin6_addr.s6_addr), INET6LEN);
-			
-			// DEBUG
-	/*		printf("%02hhx", *((unsigned char *) new6->inet6Subnet));
-			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+1));
-			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+2));
-			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+3));
-			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+4));
-			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+5));
-			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+6));
-			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+7));
-			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+8));
-			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+9));
-			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+10));
-			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+11));
-			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+12));
-			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+13));
-			printf("%02hhx", *(((unsigned char *) new6->inet6Subnet)+14));
-			printf("%02hhx\n", *(((unsigned char *) new6->inet6Subnet)+15));*/
 		}	
 	}
 
@@ -475,12 +452,6 @@ void filterSubnetEnd(void)
 	// free strutture provvisorie
 	free(subNetMaskBit4);
 	free(subNetMaskBit6);
-}
-
-void filterInterfaceEnd(void)
-{
-	// free strutture provvisorie
-	free(intTable);
 }
 
 int filtersActived(void)

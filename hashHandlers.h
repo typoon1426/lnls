@@ -26,3 +26,4 @@
 
 int neighHashFindAdd(struct neighBourBlock *neighBlock);
 void ip_hash_gc(void);
+void setIpGcExpire(int expireTime);

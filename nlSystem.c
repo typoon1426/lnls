@@ -68,7 +68,7 @@ static void initStruct(void)
 
 	src_addr.nl_family = AF_NETLINK;
  	src_addr.nl_pid = getpid(); // get my pid  
-	src_addr.nl_groups = RTMGRP_NEIGH; // set netlink route protocol, neighbour multicast group
+	src_addr.nl_groups = RTMGRP_NEIGH; // set netlink, route protocol, neighbour multicast group
 
 	nlMsg = (struct nlmsghdr *) malloc(NLMSG_SPACE(BUFLENGTH));
 

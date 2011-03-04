@@ -25,7 +25,7 @@ CC = gcc
 LD = gcc
 
 # gcc compile flags
-GCCFLAGS = -D__EXPERIMENTAL__
+GCCFLAGS = -D__EXPERIMENTAL__ 
 
 # gcc linker flags
 LDFLAGS = 
@@ -34,7 +34,7 @@ LDFLAGS =
 all: 
 	@echo "Compile link and generate executable binary"
 	$(CC) $(GCCFLAGS) -Wall -c cmdLineParse.c hashHandlers.c logging.c nlSystem.c nl2Neigh.c timer.c filters.c
-	$(LD) $(LDFLAGS) cmdLineParse.o hashHandlers.o logging.o nlSystem.o nl2Neigh.o timer.o filters.o -o nlogger
+	$(LD) $(LDFLAGS) cmdLineParse.o hashHandlers.o logging.o nlSystem.o nl2Neigh.o timer.o filters.o -o lnls
 	
 # Compile only
 compile:
@@ -44,7 +44,7 @@ compile:
 # Link and generate executable
 link:
 	@echo "Link and generate executable"
-	$(LD) $(LDFLAGS) cmdLineParse.o hashHandlers.o logging.o nlSystem.o nl2Neigh.o timer.o filters.o -o nlogger
+	$(LD) $(LDFLAGS) cmdLineParse.o hashHandlers.o logging.o nlSystem.o nl2Neigh.o timer.o filters.o -o lnls
 
 # clean of all object and executable
 clean:

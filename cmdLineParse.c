@@ -44,7 +44,7 @@
 #define MINRANGE 10
 #define MAXRANGE 15
 
-const char usage[] = "Usage: nlogger [OPTIONS]\n"
+const char usage[] = "Usage: lnls [OPTIONS]\n"
 			"Runs Neighbour Logging System.\n"
 			"  -h, --help                 		Display this help and exit\n"
 			"  -d, --daemonize            		Run on background. Optional argument, not valid with debug, help and stdout\n"
@@ -56,7 +56,7 @@ const char usage[] = "Usage: nlogger [OPTIONS]\n"
 			"  -I, --interfaces int1,int2,..   	Force to log only packets from interfaces selected.\n"
 			"  -S, --subnets sub/mask,sub/mask1,.. 	Force to log only packets of subnets selected.\n";
 
-static char programName[] = "nlogger";
+static char programName[] = "lnls";
 
 static unsigned char daemonSet = 0, commandLineRange = 0, afCalled = FALSE, interfacesCalled = FALSE, subnetsCalled = FALSE;
 

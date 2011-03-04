@@ -41,11 +41,6 @@ compile:
 	@echo "Compile only"
 	$(CC) $(GCCFLAGS) -Wall -c cmdLineParse.c hashHandlers.c logging.c nlSystem.c nl2Neigh.c timer.c filters.c
 
-# Link and generate executable
-link:
-	@echo "Link and generate executable"
-	$(LD) $(LDFLAGS) cmdLineParse.o hashHandlers.o logging.o nlSystem.o nl2Neigh.o timer.o filters.o -o lnls
-
 # clean of all object and executable
 clean:
 	@echo "Rimuovo i file object/eseguibili"

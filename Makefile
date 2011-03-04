@@ -44,5 +44,5 @@ compile:
 # clean of all object and executable
 clean:
 	@echo "Rimuovo i file object/eseguibili"
-	rm -f *.o nlogger  
+	rm -f *.o lnls 
 

@@ -1,3 +1,7 @@
+Linux Neighbous Logging System
+Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
+developed inside the "VirtualSquare" project www.virtualsquare.org
+
 Linux Neighbour Logging System is a tool designed to log the adding of new entries to kernel neighbour table, 
 through the analisys of kernel notifications to RTMGRP_NEIGH, the neighbour netlink multicast group.
 

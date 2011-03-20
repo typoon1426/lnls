@@ -36,13 +36,8 @@
 struct neighBourBlock *hashTable[IP_HASH_SIZE];
 static int ip_gc_expire = IP_GC_EXPIRE;
 
-// always inline prototype
-static int ip_hash(int len,unsigned char *addr) __attribute__((always_inline));
-static void delete_hash_entry(struct neighBourBlock *old) __attribute__((always_inline));
-static void ip_gc(struct neighBourBlock *e, void *now) __attribute__((always_inline));
-
 /* hash function */
-static int ip_hash(int len,unsigned char *addr)
+static inline int ip_hash(int len,unsigned char *addr)
 {
 	if (len == 4)
 		return((addr[0]+2*addr[1]+3*addr[2]+5*addr[3]) % IP_HASH_SIZE);
@@ -55,8 +50,8 @@ static int ip_hash(int len,unsigned char *addr)
 
 int neighHashFindAdd(struct neighBourBlock *neighBlock) 
 {
-	int key, len;
-	struct neighBourBlock *listEntry, *preEntry;
+	int key = 0, len;
+	struct neighBourBlock *listEntry, *preEntry = NULL;
 
 	if(neighBlock->addressFamily == AF_INET) {
 		key = ip_hash(INETLEN, neighBlock->inetAddr);
@@ -113,7 +108,7 @@ static void ip_for_all_hash(void (*f)(struct neighBourBlock *, void *), void *ar
 }
 
 /* delete a hash table entry */
-static void delete_hash_entry(struct neighBourBlock *old) 
+static inline void delete_hash_entry(struct neighBourBlock *old) 
 {
 	int key;
 
@@ -145,7 +140,7 @@ static void delete_hash_entry(struct neighBourBlock *old)
 
 /* clean from the hash table entries older than IP_GC_EXPIRE seconds, given that
  * 'now' points to a time_t structure describing the current time */
-static void ip_gc(struct neighBourBlock *e, void *now)
+static inline void ip_gc(struct neighBourBlock *e, void *now)
 {
 	if((*((time_t *) now) - e->last_seen) >= ip_gc_expire)
 		delete_hash_entry(e);

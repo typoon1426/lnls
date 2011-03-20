@@ -63,11 +63,6 @@ static struct subNet6 *inet6SubnetList = NULL;
 static struct subNet4 **subNetMaskBit4 = NULL;
 static struct subNet6 **subNetMaskBit6 = NULL;
 
-// always inline functions prototipe
-static int verifyAF(unsigned char af) __attribute__((always_inline));
-static int verifyInt(unsigned int if_index) __attribute__((always_inline));
-static int verifySubnet(struct neighBourBlock *neighBour) __attribute__((always_inline));
-
 // initialize filters specific data structures
 void filtersInit(void)
 {
@@ -104,7 +99,7 @@ void filtersInit(void)
 }
 
 // verify if parameter is equal to saved addressfamily
-static int verifyAF(unsigned char af)
+static inline int verifyAF(unsigned char af)
 {
 	if(af == addressFamily)
 		return TRUE;
@@ -113,7 +108,7 @@ static int verifyAF(unsigned char af)
 }
 
 // verify if interface index number is saved in the array of interface indexes
-static int verifyInt(unsigned int if_index)
+static inline int verifyInt(unsigned int if_index)
 {
 	if(intTable[if_index] == TRUE)
 		return TRUE;
@@ -122,7 +117,7 @@ static int verifyInt(unsigned int if_index)
 }
 
 // verify if subnet of received packet is saved in filters lists
-static int verifySubnet(struct neighBourBlock *neighBour)
+static inline int verifySubnet(struct neighBourBlock *neighBour)
 {
 	if(neighBour->addressFamily == AF_INET)
 	{
@@ -289,7 +284,7 @@ static void nBit2Mask(unsigned char *mask, unsigned int nBit, unsigned int len)
 
 int filterAddSubnet(char *subNet)
 {
-	int ret, len;
+	int ret, len = 0;
 	unsigned int counter = 0, subnetMaskBitNumber;
 	char *token = NULL, *subNetSave = subNet, *newSubToken = NULL;
 	char *subnetElements[2];

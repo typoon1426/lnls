@@ -31,11 +31,7 @@
 
 static sigset_t oldState, maskedState;
 
-// always inline functions prototype
-void unMask(void) __attribute__((always_inline));
-void mask(void) __attribute__((always_inline));
-
-void unMask(void)
+inline void unMask(void)
 {
 	
 	if (sigprocmask(SIG_SETMASK,&oldState,NULL) < 0)
@@ -45,7 +41,7 @@ void unMask(void)
 	}
 }
 
-void mask(void)
+inline void mask(void)
 {
 	if (sigprocmask(SIG_BLOCK,&maskedState,&oldState) < 0)
 	{

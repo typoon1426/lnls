@@ -47,10 +47,6 @@ static char lineBuf[1024];
 static FILE *logFile = NULL; 
 static unsigned char mode = 0;
 
-// always inline functions prototipe
-unsigned char getMode(void) __attribute__((always_inline));
-
-
 static void etherAddr2Str(const unsigned char *ether, char *buf, int srclen, int dstlen)
 {
 	int i, w = 0;
@@ -150,7 +146,7 @@ void setMode(unsigned int newMode)
 	mode = newMode;
 }
 
-unsigned char getMode(void)
+inline unsigned char getMode(void)
 {
 	return mode;
 }

@@ -30,4 +30,4 @@ void filterSetAF(int af);
 void filterAddInterface(unsigned int int_index);
 int filterAddSubnet(char *subNet);
 void filterSubnetEnd(void);
-int filtersActived(void) __attribute__((always_inline));
+int filtersActived(void);

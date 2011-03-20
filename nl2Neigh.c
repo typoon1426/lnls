@@ -35,11 +35,7 @@
 
 #include "nlSystem.h"
 
-// always inline functions prototype
-int packetTest(struct nlmsghdr *nlMsgHdr, int len) __attribute__((always_inline));
-static struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr) __attribute__((always_inline));
-
-static struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr)
+static inline struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr)
 {
 	struct neighBourBlock *newNeigh = NULL;
 
@@ -107,7 +103,7 @@ struct neighBourBlock *parseNlPacket(struct nlmsghdr *nlMsgHdr)
 	return NULL;
 }
 
-int packetTest(struct nlmsghdr *nlMsgHdr, int len)
+inline int packetTest(struct nlmsghdr *nlMsgHdr, int len)
 {
 	return NLMSG_OK(nlMsgHdr, len);
 }

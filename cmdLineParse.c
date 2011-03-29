@@ -28,12 +28,16 @@
 #include <syslog.h>
 #include <string.h>
 #include <getopt.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "logging.h"
 #include "nlSystem.h"
 #include "filters.h"
 
 #define DAEMONIZE_WEIGHT 1
+#define PIDFILE_WEIGHT 1
 #define GROUPBYINT_WEIGHT 2
 #define SYSLOG_WEIGHT 11
 #define FILELOG_WEIGHT 11
@@ -48,6 +52,7 @@ const char usage[] = "Usage: lnls [OPTIONS]\n"
 			"Runs Neighbour Logging System.\n"
 			"  -h, --help                 		Display this help and exit\n"
 			"  -d, --daemonize            		Run on background. Optional argument, not valid with debug, help and stdout\n"
+			"  -p, --pidfile filename       	Write the pid of lnls in the file named \"filename\", valid only with daemonize\n"
 			"  -D, --debug                		Print all packet log on standard output, without timing handling. Not valid with other options.\n" 
 			"  -O, --stdout               		Print all packet log on standard output, not valid with: daemonize, debug, filelog and syslog.\n"
 			"  -s, --syslog               		Print all packet log on syslog, not valid with: debug, stdout and filelog\n"
@@ -56,8 +61,7 @@ const char usage[] = "Usage: lnls [OPTIONS]\n"
 			"  -I, --interfaces int1,int2,..   	Force to log only packets from interfaces selected.\n"
 			"  -S, --subnets sub/mask,sub/mask1,.. 	Force to log only packets of subnets selected.\n";
 
-static char programName[] = "lnls";
-
+static const char programName[] = "lnls";
 static unsigned char daemonSet = 0, commandLineRange = 0, afCalled = FALSE, interfacesCalled = FALSE, subnetsCalled = FALSE;
 
 static void printUsage(void)
@@ -90,6 +94,14 @@ static void daemonize(void)
 	daemonSet = 1;
 }
 
+static void pidFile(char *pidFileName)
+{
+	commandLineRange += PIDFILE_WEIGHT;
+
+	// save pidfile filename
+	saveFileName(pidFileName);
+}
+
 static void stdOutput(void)
 {
 	// add weight
@@ -102,7 +114,7 @@ static void sysLog(void)
 	// add weight
 	commandLineRange += SYSLOG_WEIGHT;
 	// set syslog logging
-	openlog(programName, 0, LOG_SYSLOG);
+	openlog(programName, LOG_PID, LOG_SYSLOG);
 	setMode(SYSLOG);
 }
 
@@ -119,7 +131,6 @@ static void debug(void)
 	setMode(DEBUG);
 }
 
-#ifdef __EXPERIMENTAL__
 static void filterAddrFamily(char *addrFamily)
 {
 	
@@ -212,7 +223,6 @@ static void filterSubnets(char *subNetsArg)
 	else
 		help();
 }
-#endif
 
 // parsing command line with getopt_long function
 void parseCmdLine(int argc, char *argv[])
@@ -235,13 +245,14 @@ void parseCmdLine(int argc, char *argv[])
 			{"stdout", 0, 0, 'O'},
 			{"syslog", 0, 0, 's'},
 			{"filelog", 1, 0, 'F'},
+			{"pidfile", 1, 0, 'p'},
 			{"addrfamily", 1, 0, 'A'},
 			{"interfaces", 1, 0, 'I'},
 			{"subnets", 1, 0, 'S'},
 			{0, 0, 0, 0}
 			};
 
-			c = getopt_long(argc, argv, "dDhOsF:A:I:S:", long_options, &option_index);
+			c = getopt_long(argc, argv, "dDhOsF:A:I:S:p:", long_options, &option_index);
 			if (c == -1)
 				break;
 
@@ -249,6 +260,10 @@ void parseCmdLine(int argc, char *argv[])
 			{
 				case 'd':
 					daemonize();
+				break;
+
+				case 'p':
+					pidFile(optarg);
 				break;
 
 				case 'D':
@@ -266,7 +281,7 @@ void parseCmdLine(int argc, char *argv[])
 				case 'F':
 					fileLog(optarg);
 				break;
-				#ifdef __EXPERIMENTAL__
+
 				case 'A':
 					filterAddrFamily(optarg);
 				break;
@@ -278,7 +293,7 @@ void parseCmdLine(int argc, char *argv[])
 				case 'S':
 					filterSubnets(optarg);
 				break;
-				#endif
+
 				case 'h':
 				case '?':
 					help();
@@ -295,6 +310,22 @@ void parseCmdLine(int argc, char *argv[])
 			{
 				perror("daemon :");
 				exit(1);
+			}
+			else
+			{
+				FILE *stream;
+
+				if((stream = fopen(getPidFileName(), "w")) == NULL) {
+					syslog(LOG_INFO, "file stream open failed, %u", errno);
+					exit(1);
+				}
+	
+				if(fprintf(stream, "%d\n", getpid()) <= 0) {
+					syslog(LOG_INFO, "pid fprintf failed, %u", errno);
+					exit(1);
+				}
+
+				fclose(stream);
 			}
 		}
 	}

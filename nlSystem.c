@@ -50,11 +50,30 @@ static struct msghdr msg;
 static struct nlmsghdr *nlMsg;
 static int fd; 
 
+// Close all file handlers and remove pidfile
 static void cleanExit(void)
 {
 	if(getFileLogStream() != NULL)
 	{
 		closeLogFile();
+	}
+
+	char *pidFilePtr = getPidFileName();
+	
+	if(pidFilePtr != NULL)
+	{
+		// remove pidfile
+		if(unlink(pidFilePtr) != 0)
+		{
+			FILE *stream = getFileLogStream();
+			if(stream != NULL)
+			{
+				fprintf(stream, "Errore unlink file, impossibile cancellare");
+				closeLogFile();
+			}
+			else
+				syslog(LOG_INFO, "Errore unlink file, impossibile cancellare");
+		}
 	}
 
 	exit(0);
@@ -152,10 +171,6 @@ static void mainLoop(void)
 					}
 					else
 					{
-						#ifdef __EXPERIMENTAL__
-						// test if packet match filters 
-						// FILTERSACTIVED == TRUE && FILTER == FALSE
-
 						if((filtersActived()) && (filter(neighBour) == FALSE))
 						{
 							free(neighBour);
@@ -164,11 +179,7 @@ static void mainLoop(void)
 						{
 							// test if packet is present in hash table and log if necessary
 							pktSave(neighBour);
-						}
-						#else
-							// test if packet is present in hash table and log if necessary
-							pktSave(neighBour);
-						#endif		
+						}	
 					}
 				}			
 			}
@@ -245,14 +256,14 @@ static void setSignalHandlers()
 
 int main(int argc, char *argv[])
 {
+	// parse command line arguments
+	parseCmdLine(argc, argv);
+
 	// signal handlers
 	setSignalHandlers();
 
 	// mask SIGALRM 
 	mask();
-
-	// parse command line arguments
-	parseCmdLine(argc, argv);
 
 	// init all structures
 	initStruct();

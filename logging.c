@@ -34,6 +34,7 @@
 #include <netdb.h>
 #include <time.h>
 #include <syslog.h>
+#include <unistd.h>
 
 #include "nlSystem.h"
 
@@ -46,6 +47,7 @@ static char lineBuf[1024];
 
 static FILE *logFile = NULL; 
 static unsigned char mode = 0;
+static char pidFilePtr[512];
 
 static void etherAddr2Str(const unsigned char *ether, char *buf, int srclen, int dstlen)
 {
@@ -190,4 +192,30 @@ void logWrite(struct neighBourBlock *neigh)
 			sysLogPrint(neigh);
 		break;
 	}
+}
+
+void saveFileName(char *pidFileName)
+{
+	size_t len = strnlen(pidFileName, 512);
+
+	if(pidFileName[0] != '/')
+	{
+		if(getcwd(pidFilePtr, 512) == NULL)
+		{
+			perror("getcwd");
+			exit(1);
+		}
+		
+		strncat(pidFilePtr, "/", 1);
+		strncat(pidFilePtr, pidFileName, len);
+	}
+	else
+	{
+		strncpy(pidFilePtr, pidFileName, len);
+	}
+}
+
+char *getPidFileName(void)
+{
+	return pidFilePtr;
 }

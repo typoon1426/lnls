@@ -32,4 +32,6 @@ FILE *getFileLogStream(void);
 void setMode(unsigned int newMode);
 unsigned char getMode(void);
 void debugPrint(struct neighBourBlock *neigh);
+void saveFileName(char *pidFileName);
+char *getPidFileName(void);
 

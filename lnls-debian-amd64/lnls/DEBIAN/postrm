@@ -11,6 +11,9 @@ if [ "$1" = "remove" ]; then
   # Restart rsyslog
   invoke-rc.d rsyslog restart
 
+  # Remove lnls pidfile directory
+  rm -rf /var/run/lnls
+
   # Remove if exist the lnls log file
   if [ -x $LOGFILE ]; then
   	  rm -f $LOGFILE

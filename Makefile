@@ -28,7 +28,7 @@ LD = gcc
 GCCFLAGS = -O2 -Wno-strict-aliasing
 
 # gcc linker flags
-LDFLAGS = 
+LDFLAGS = -s 
 
 # Compile all and generate executable
 all: 

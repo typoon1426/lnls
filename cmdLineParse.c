@@ -48,7 +48,7 @@
 #define MINRANGE 10
 #define MAXRANGE 15
 
-const char usage[] = "Usage: lnls [OPTIONS]\n"
+static const char usage[] = "Usage: lnls [OPTIONS]\n"
 			"Runs Neighbour Logging System.\n"
 			"  -h, --help                 		Display this help and exit\n"
 			"  -d, --daemonize            		Run on background. Optional argument, not valid with debug, help and stdout\n"
@@ -62,6 +62,7 @@ const char usage[] = "Usage: lnls [OPTIONS]\n"
 			"  -S, --subnets sub/mask,sub/mask1,.. 	Force to log only packets of subnets selected.\n";
 
 static const char programName[] = "lnls";
+static const char started[] = "started";
 static unsigned char daemonSet = 0, commandLineRange = 0, afCalled = FALSE, interfacesCalled = FALSE, subnetsCalled = FALSE;
 
 static void printUsage(void)
@@ -315,6 +316,23 @@ void parseCmdLine(int argc, char *argv[])
 			{
 				FILE *stream;
 
+				// log lnls started
+				switch(getMode())
+				{
+					case STDOUT:
+						fprintf(stdout, "%s %s\n", programName, started);
+					break;
+
+					case FILEOUT:	
+						fprintf(getFileLogStream(), "%s %s\n", programName, started);
+					break;
+
+					case SYSLOG:	
+						syslog(LOG_INFO, "%s %s", programName, started);
+					break;
+				}
+
+				// write in pidfile mypid
 				if((stream = fopen(getPidFileName(), "w")) == NULL) {
 					syslog(LOG_INFO, "file stream open failed, %u", errno);
 					exit(1);

@@ -65,18 +65,23 @@ case "$1" in
 	    log_end_msg 1
 	fi
 
-	if [ -z $pid ]; then
-	    pid=$(pgrep -f ^/usr/bin/lnls) || true
-	    start-stop-daemon --stop --oknodo --quiet --exec /usr/bin/lnls \
-		    --pidfile ${PIDFILE}
+	if [ -e $PIDFILE ]; then
+		pid=$(cat $PIDFILE)
+		kill -TERM $pid
 	fi
 
-	if [ -n $pid ]; then
-	  while kill -0 $pid 2>/dev/null; do
-	    log_progress_msg "waiting for pid $pid to die"
-	    sleep 1
-	  done
-	fi
+#	if [ -z $pid ]; then
+#	    pid=$(pgrep -f ^/usr/bin/lnls) || true
+#	    start-stop-daemon --stop --oknodo --quiet --exec /usr/bin/lnls \
+#		    --pidfile ${PIDFILE}
+#	fi
+
+#	if [ -n $pid ]; then
+#	  while kill -0 $pid 2>/dev/null; do
+#	    log_progress_msg "waiting for pid $pid to die"
+#	    sleep 1
+#	  done
+#	fi
 	log_end_msg 0
     ;;
 

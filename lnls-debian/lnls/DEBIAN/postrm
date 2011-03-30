@@ -1,0 +1,18 @@
+#!/bin/sh
+set -e
+# Automatically added by dh_installdocs
+LOGFILE=/var/log/lnls.log
+
+if [ "$1" = "remove" ]; then
+
+   # Remove autostart in runlevel
+  update-rc.d -f lnls remove
+
+  # Restart rsyslog
+  invoke-rc.d rsyslog restart
+
+  # Remove if exist the lnls log file
+  if [ -x $LOGFILE ]; then
+  	  rm -f $LOGFILE
+  fi
+fi

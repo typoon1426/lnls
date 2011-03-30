@@ -2,25 +2,25 @@
 
 ### BEGIN INIT INFO
 # Provides:          lnls
+# Required-Start:    $remote_fs
+# Required-Stop:     $remote_fs
 # Should-Start:      $network $syslog
 # Should-Stop:       $network $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Start and stop lnls
-# Description:       lnls is Linux Neighbour logging system
-# log neighbour table entries
+# Description:       lnls is Linux Neighbour logging system log neighbour table entries
 ### END INIT INFO
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
-# Don't modify this line, change or create /etc/default/bind9.
-OPTIONS=""
-RESOLVCONF=no
-
 test -f /etc/default/lnls && . /etc/default/lnls
 
 . /lib/lsb/init-functions
-PIDFILE=/var/run/lnls.pid
+PIDFILE=/var/run/lnls/lnls.pid
+
+# Don't modify this line, change or create /etc/default/bind9.
+OPTIONS=$OPTIONS"--daemonize --syslog --pidfile "$PIDFILE
 
 check_network() {
     if [ -z "$(/sbin/ifconfig $IFCONFIG_OPTS)" ]; then
@@ -38,9 +38,6 @@ case "$1" in
 	if [ -x $PIDFILE ]; then
 	    log_action_msg "lnls already running - not starting"
 	    log_end_msg 1
-	else
-	    touch $PIDFILE
-	    chown lnls:lnls $PIDFILE
 	fi
 
 	if [ ! -x /usr/bin/lnls ]; then
@@ -54,7 +51,7 @@ case "$1" in
 	fi
 
 	if start-stop-daemon --start --oknodo --quiet --chuid lnls:lnls --exec /usr/bin/lnls \
-		--daemon --syslog --pidfile ${PIDFILE} $OPTIONS; then
+		--pidfile ${PIDFILE} -- $OPTIONS; then
 	    log_end_msg 0
 	else
 	    log_end_msg 1
@@ -71,7 +68,7 @@ case "$1" in
 	if [ -z $pid ]; then
 	    pid=$(pgrep -f ^/usr/bin/lnls) || true
 	    start-stop-daemon --stop --oknodo --quiet --exec /usr/bin/lnls \
-		    --pidfile ${PIDFILE} -- $OPTIONS
+		    --pidfile ${PIDFILE}
 	fi
 
 	if [ -n $pid ]; then

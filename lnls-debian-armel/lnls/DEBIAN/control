@@ -1,0 +1,10 @@
+Package: lnls
+Version: 0.1-5
+Section: admin
+Priority: optional
+Architecture: amd64 
+Depends: dpkg (>= 1.14.31), lsb-base (>= 3.2-20), rsyslog (>= 3.18.6-4)
+Pre-Depends: libc6 (>= 2.3)
+Maintainer: Michele Cucchi <cucchi@cs.unibo.it>
+Description: Linux Neighbour Logging System
+ This utility log the kernel neighbour table entries 

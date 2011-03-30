@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+# Automatically added by dh_installdocs
+if [ \( "$1" = "upgrade" -o "$1" = "remove" \) -a -L /usr/doc/lnls ]; then
+  rm -f /usr/doc/lnls
+
+  # Stop service eventually running
+  invoke-rc.d lnls stop
+
+  # Remove lnls system user and group
+  userdel lnls
+fi
+# End automatically added section
+
+
+

@@ -1,0 +1,28 @@
+#!/bin/sh
+set -e
+# Automatically added by dh_installdocs
+if [ "$1" = "configure" ]; then
+#  if [ -d /usr/doc -a ! -e /usr/doc/lnls -a -d /usr/share/doc/lnls ]; then
+#    ln -sf ../share/doc/lnls /usr/doc/lnls
+#  fi
+
+  # Create lnls system user and group
+  getent group lnls >/dev/null 2>&1 || addgroup --system lnls
+  getent passwd lnls >/dev/null 2>&1 || adduser --system --no-create-home --disabled-password --ingroup lnls lnls
+
+  # Make lnls pidfile directory
+  mkdir /var/run/lnls
+  chown lnls /var/run/lnls
+  chgrp lnls /var/run/lnls
+
+  # Restart rsyslog
+  invoke-rc.d rsyslog restart
+
+  # Set autostart and autoremove in runlevel
+  update-rc.d lnls defaults 15 85 >/dev/null || exit $?	
+
+  # Start service
+  invoke-rc.d lnls start
+fi
+# End automatically added section
+

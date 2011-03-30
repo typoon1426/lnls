@@ -53,7 +53,7 @@ case "$1" in
 	    log_end_msg 1
 	fi
 
-	if start-stop-daemon --start --oknodo --quiet --exec /usr/bin/lnls \
+	if start-stop-daemon --start --oknodo --quiet --chuid lnls:lnls --exec /usr/bin/lnls \
 		--daemon --syslog --pidfile ${PIDFILE} $OPTIONS; then
 	    log_end_msg 0
 	else

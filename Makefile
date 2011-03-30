@@ -25,7 +25,7 @@ CC = gcc
 LD = gcc
 
 # gcc compile flags
-GCCFLAGS = -O2 -Wno-strict-aliasing -ggdb
+GCCFLAGS = -O2 -Wno-strict-aliasing
 
 # gcc linker flags
 LDFLAGS = 

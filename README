@@ -5,16 +5,9 @@ developed inside the "VirtualSquare" project www.virtualsquare.org
 Linux Neighbour Logging System is a tool designed to log the adding of new entries to kernel neighbour table, 
 through the analisys of kernel notifications to RTMGRP_NEIGH, the neighbour netlink multicast group.
 
-This software is only for Linux version greater than 2.6.18
+This software is compatible only for Linux version greater than 2.6.18
 
-Build
-Makefile commands:
-
-"make" compile and generate executable
-
-"make compile" compile without do linking and executable generation
-
-"make clean" remove the executable and all object file
+To build read INSTALL file.
 
 Command line parameter
 

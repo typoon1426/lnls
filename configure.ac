@@ -5,7 +5,7 @@ AC_PREREQ([2.68])
 AC_INIT([FULL-PACKAGE-NAME], [VERSION], [BUG-REPORT-ADDRESS])
 AM_INIT_AUTOMAKE(lnls, 1.0)
 AC_CONFIG_SRCDIR([include/logging.h])
-AC_CONFIG_SRCDIR([src/cmdLineParse.c])
+AC_CONFIG_SRCDIR([src/logging.c])
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.

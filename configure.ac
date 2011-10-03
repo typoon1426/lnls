@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.68])
+AC_PREREQ([2.67])
 AC_INIT([lnls], [0.1], [cucchi@cs.unibo.it])
 AM_INIT_AUTOMAKE(lnls, 1.0)
 AC_CONFIG_SRCDIR([include/logging.h])

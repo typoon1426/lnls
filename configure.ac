@@ -8,8 +8,10 @@ AC_CONFIG_SRCDIR([include/logging.h])
 AC_CONFIG_SRCDIR([src/logging.c])
 AC_CONFIG_HEADERS([config.h])
 
+: ${CFLAGS=""}
+
 # Checks for programs.
-AC_PROG_CC
+AC_PROG_CC([gcc cc])
 
 # Checks for libraries.
 
@@ -27,4 +29,5 @@ AC_CHECK_FUNCS([getcwd memset memcpy socket])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile])
+#AM_PROG_CC_C_O()
 AC_OUTPUT

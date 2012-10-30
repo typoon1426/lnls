@@ -59,7 +59,10 @@ static const char usage[] = "Usage: lnls [OPTIONS]\n"
 			"  -F, --filelog filename     		Print all packet log on logfile, not valid with: debug, stdout and syslog\n"
 			"  -A, --addrfamily inet|inet6		Force to log only packets of address family selected.\n"
 			"  -I, --interfaces int1,int2,..   	Force to log only packets from interfaces selected.\n"
-			"  -S, --subnets sub/mask,sub/mask1,.. 	Force to log only packets of subnets selected.\n";
+			"  -S, --subnets sub/mask,sub/mask1,.. 	Force to log only packets of subnets selected.\n"
+			"  -T, --timeout 	Set hash table flushing timeout, default is 360 seconds\n"
+			"  -4, --exec4		Set a command to exec when receiving a packet with IPv4 address\n"
+			"  -6, --exec6		Set a command to exec when receiving a packet with IPv6 address\n";
 
 static const char programName[] = "lnls";
 static const char started[] = "started";
@@ -250,10 +253,13 @@ void parseCmdLine(int argc, char *argv[])
 			{"addrfamily", 1, 0, 'A'},
 			{"interfaces", 1, 0, 'I'},
 			{"subnets", 1, 0, 'S'},
+			{"timeout", 1, 0, 'T'},
+			{"exec4", 1, 0, '4'},
+			{"exec6", 1, 0, '6'}
 			{0, 0, 0, 0}
 			};
 
-			c = getopt_long(argc, argv, "dDhOsF:A:I:S:p:", long_options, &option_index);
+			c = getopt_long(argc, argv, "dDhOsF:A:I:S:p:T:4:6:", long_options, &option_index);
 			if (c == -1)
 				break;
 
@@ -295,6 +301,18 @@ void parseCmdLine(int argc, char *argv[])
 					filterSubnets(optarg);
 				break;
 
+				case 'T':
+					filterSubnets(optarg);
+				break;
+				
+				case '4':
+					filterSubnets(optarg);
+				break;
+				
+				case '6':
+					filterSubnets(optarg);
+				break;
+				
 				case 'h':
 				case '?':
 					help();

@@ -140,7 +140,15 @@ static void pktSave(struct neighBourBlock *neighBour)
 	unMask();
 
 	if(ret == LOG)
+	{
+		if(exec4)
+			exec4(neighBour);
+			
+		if(exec6)
+			exec6(neighBour);
+		
 		logWrite(neighBour);
+	}
 }
 
 static void mainLoop(void)

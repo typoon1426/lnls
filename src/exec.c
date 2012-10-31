@@ -21,12 +21,26 @@
 /* 
  *		Exec module
  */
-
+ 
+#include <unistd.h>
 #include "exec.h"
 
 static void execRx(struct neighBourBlock *neighBour, unsigned char AF)
 {
+	pid_t newPid = fork();
 	
+	if(newPid == 0)
+	{
+		// son process call execve
+	}
+	else if(newPid < 0)
+	{
+		// handling error
+	}
+	else if(newPid > 0)
+	{
+		// father process call waitpid
+	}
 }
 
 static void execDel(struct neighBourBlock *neighBour, unsigned char AF)

@@ -43,6 +43,7 @@
 #include "cmdLineParse.h"
 #include "timer.h"
 #include "filters.h"
+#include "exec.h"
 
 static struct sockaddr_nl src_addr, dest_addr;
 static struct iovec iov;
@@ -141,12 +142,31 @@ static void pktSave(struct neighBourBlock *neighBour)
 
 	if(ret == LOG)
 	{
-		if(exec4)
-			exec4(neighBour);
+		// Call an hook function to exec an external program on neighbour receive
+		switch(neighBour->addressFamily)
+		{
+			case AF_INET:
+				// mask SIGALRM 
+				mask();
+				
+				hookRcvPair4(neighBour);
+				
+				// unmask SIGALRM 
+				unMask();
+			break;
 			
-		if(exec6)
-			exec6(neighBour);
+			case AF_INET6:
+				// mask SIGALRM 
+				mask();
+				
+				hookRcvPair6(neighBour);
+				
+				// unmask SIGALRM 
+				unMask();
+			break;
+		}
 		
+		// Log new neighbour
 		logWrite(neighBour);
 	}
 }

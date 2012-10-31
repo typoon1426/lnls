@@ -74,5 +74,4 @@ struct neighBourBlock {
 	struct neighBourBlock *t_prev;
 
 } __attribute__((packed));
-
 #endif

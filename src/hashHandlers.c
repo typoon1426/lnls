@@ -143,7 +143,22 @@ static inline void delete_hash_entry(struct neighBourBlock *old)
 static inline void ip_gc(struct neighBourBlock *e, void *now)
 {
 	if((*((time_t *) now) - e->last_seen) >= ip_gc_expire)
+	{
+		// Call an hook function to exec an external program on neighbour remove
+		switch(e->addressFamily)
+		{
+			case AF_INET:
+				hookRemPair4(e);
+			break;
+			
+			case AF_INET6:
+				hookRemPair6(e);
+			break;
+		}
+
+		// Delete neighbour
 		delete_hash_entry(e);
+	}
 }
 
 /* clean old entries in the hash table 'h', and prepare the timer to be called * again between GC_INTERVAL seconds */

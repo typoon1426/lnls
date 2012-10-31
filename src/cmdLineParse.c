@@ -254,8 +254,10 @@ void parseCmdLine(int argc, char *argv[])
 			{"interfaces", 1, 0, 'I'},
 			{"subnets", 1, 0, 'S'},
 			{"timeout", 1, 0, 'T'},
-			{"exec4", 1, 0, '4'},
-			{"exec6", 1, 0, '6'}
+			{"exec-rx4", 1, 0, '4'},
+			{"exec-rx6", 1, 0, '6'}
+			{"exec-del4", 1, 0, '4'},
+			{"exec-del6", 1, 0, '6'}
 			{0, 0, 0, 0}
 			};
 
@@ -302,15 +304,15 @@ void parseCmdLine(int argc, char *argv[])
 				break;
 
 				case 'T':
-					filterSubnets(optarg);
+					setTimeout(optarg);
 				break;
 				
 				case '4':
-					filterSubnets(optarg);
+					setIP4RecCommand(optarg);
 				break;
 				
 				case '6':
-					filterSubnets(optarg);
+					setIP6RecCommand(optarg);
 				break;
 				
 				case 'h':

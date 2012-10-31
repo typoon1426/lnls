@@ -1,7 +1,7 @@
 /*   Linux Neighbour logging system Version 0.1
  *   developed as part of VirtualSquare project
  *   
- *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
+ *   Copyright 2010,2012 Michele Cucchi <cucchi@cs.unibo.it>
  *   
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License, version 2, as
@@ -35,15 +35,15 @@
 #include "logging.h"
 #include "nlSystem.h"
 #include "filters.h"
+#include "hashHandlers.h"
 
 #define DAEMONIZE_WEIGHT 1
 #define PIDFILE_WEIGHT 1
 #define GROUPBYINT_WEIGHT 2
 #define SYSLOG_WEIGHT 11
 #define FILELOG_WEIGHT 11
-#define CONF_WEIGHT 13
 #define STDOUT_WEIGHT 14
-#define HELP_WEIGHT 15
+#define HELP_WEIGHT 14
 #define DEBUG_WEIGHT 14
 #define MINRANGE 10
 #define MAXRANGE 15
@@ -61,12 +61,14 @@ static const char usage[] = "Usage: lnls [OPTIONS]\n"
 			"  -I, --interfaces int1,int2,..   	Force to log only packets from interfaces selected.\n"
 			"  -S, --subnets sub/mask,sub/mask1,.. 	Force to log only packets of subnets selected.\n"
 			"  -T, --timeout 	Set hash table flushing timeout, default is 360 seconds\n"
-			"  -4, --exec4		Set a command to exec when receiving a packet with IPv4 address\n"
-			"  -6, --exec6		Set a command to exec when receiving a packet with IPv6 address\n";
+			"  -x, --exec-rx4		Set a command to exec when receiving a neighbour with IPv4 address\n"
+			"  -X, --exec-rx6		Set a command to exec when receiving a neighbour with IPv6 address\n"
+			"  -z, --exec-del4		Set a command to exec when a neighbour with IPv4 address has expired\n"
+			"  -Z, --exec-del6		Set a command to exec when a neighbour with IPv6 address has expired\n";
 
 static const char programName[] = "lnls";
 static const char started[] = "started";
-static unsigned char daemonSet = 0, commandLineRange = 0, afCalled = FALSE, interfacesCalled = FALSE, subnetsCalled = FALSE;
+static unsigned char daemonSet = 0, commandLineRange = 0, afCalled = interfacesCalled = subnetsCalled = timeoutCalled = execRX4 = execRX6 = execDel4 = execDel6 = FALSE;
 
 static void printUsage(void)
 {
@@ -228,6 +230,81 @@ static void filterSubnets(char *subNetsArg)
 		help();
 }
 
+static void setTimeout(char *timeOut)
+{
+	if(timeoutCalled == FALSE)
+	{
+		int intTimeout = 0;
+
+		timeoutCalled = TRUE;
+
+		if(sscanf(timeOut, "%d", &intTimeout) < 0)
+		{
+			// TODO BETTER ERRORS HANDLING
+			perror("sscanf");
+			exit(1);
+		}
+		else
+		{
+			if((intTimeout <= 0) || (intTimeout >= MAXTIMEOUT))
+				help();
+		}
+
+		setIpGcExpire(intTimeout);
+	}
+	else
+		help();
+}
+
+static void setIP4RecCommand(char *ip4RecCmd)
+{
+	
+	if(execRX4 == FALSE)
+	{
+		execRX4 = TRUE;
+
+		setExec4RecCmd(ip4RecCmd);
+	}
+	else
+		help();
+}
+
+static void setIP6RecCommand(char *ip6RecCmd)
+{
+	if(execRX6 == FALSE)
+	{
+		execRX6 = TRUE;
+
+		setExec6RecCmd(ip6RecCmd);
+	}
+	else
+		help();
+}
+
+static void setIP4DelCommand(char *ip4DelCmd)
+{
+	if(execDel4 == FALSE)
+	{
+		execDel4 = TRUE;
+
+		setExec4DelCmd(ip4DelCmd);
+	}
+	else
+		help();
+}
+
+static void setIP6DelCommand(char *ip6DelCmd)
+{
+	if(execDel6 == FALSE)
+	{
+		execDel6 = TRUE;
+
+		setExec6DelCmd(ip6DelCmd);
+	}
+	else
+		help();
+}
+
 // parsing command line with getopt_long function
 void parseCmdLine(int argc, char *argv[])
 {
@@ -254,14 +331,14 @@ void parseCmdLine(int argc, char *argv[])
 			{"interfaces", 1, 0, 'I'},
 			{"subnets", 1, 0, 'S'},
 			{"timeout", 1, 0, 'T'},
-			{"exec-rx4", 1, 0, '4'},
-			{"exec-rx6", 1, 0, '6'}
-			{"exec-del4", 1, 0, '4'},
-			{"exec-del6", 1, 0, '6'}
+			{"exec-rx4", 1, 0, 'x'},
+			{"exec-rx6", 1, 0, 'X'}
+			{"exec-del4", 1, 0, 'z'},
+			{"exec-del6", 1, 0, 'Z'}
 			{0, 0, 0, 0}
 			};
 
-			c = getopt_long(argc, argv, "dDhOsF:A:I:S:p:T:4:6:", long_options, &option_index);
+			c = getopt_long(argc, argv, "dDhOsF:A:I:S:p:T:x:X:z:Z:", long_options, &option_index);
 			if (c == -1)
 				break;
 
@@ -307,14 +384,22 @@ void parseCmdLine(int argc, char *argv[])
 					setTimeout(optarg);
 				break;
 				
-				case '4':
+				case 'x':
 					setIP4RecCommand(optarg);
 				break;
 				
-				case '6':
+				case 'X':
 					setIP6RecCommand(optarg);
 				break;
 				
+				case 'z':
+					setIP4DelCommand(optarg);
+				break;
+				
+				case 'Z':
+					setIP6DelCommand(optarg);
+				break;
+
 				case 'h':
 				case '?':
 					help();

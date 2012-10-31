@@ -1,7 +1,7 @@
 /*   Linux Neighbour logging system Version 0.1
  *   developed as part of VirtualSquare project
  *   
- *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
+ *   Copyright 2010,2012 Michele Cucchi <cucchi@cs.unibo.it>
  *   
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License, version 2, as
@@ -111,7 +111,6 @@ static void initStruct(void)
 // bind socket
 static void socketBind(void)
 {
-
 	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
  
 	if(fd < 0)

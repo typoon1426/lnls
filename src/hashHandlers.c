@@ -1,7 +1,7 @@
 /*   Linux Neighbour logging system Version 0.1
  *   developed as part of VirtualSquare project
  *   
- *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
+ *   Copyright 2010,2012 Michele Cucchi <cucchi@cs.unibo.it>
  *
  *   This module is mostly based on iplog plugin hash table of Virtual Distributed Ethernet vde_switch, 
  *   Copyright 2010 Renzo Davoli University of Bologna - Italy

@@ -2,10 +2,7 @@
  *   developed as part of VirtualSquare project
  *   
  *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
- *
- *   This module is mostly based on iplog plugin hash table of Virtual Distributed Ethernet vde_switch, 
- *   Copyright 2010 Renzo Davoli University of Bologna - Italy
- *   
+ * 
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License, version 2, as
  *   published by the Free Software Foundation.
@@ -23,6 +20,8 @@
 /* 
  *		Hash Table Module
  */
+
+#define MAXTIMEOUT 3600
 
 int neighHashFindAdd(struct neighBourBlock *neighBlock);
 void ip_hash_gc(void);

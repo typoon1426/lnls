@@ -1,7 +1,7 @@
 /*   Linux Neighbour logging system Version 0.2
  *   developed as part of VirtualSquare project
  *   
- *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
+ *   Copyright 2012 Michele Cucchi <cucchi@cs.unibo.it>
  *   
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License, version 2, as
@@ -32,18 +32,70 @@ static void execRx(struct neighBourBlock *neighBour, unsigned char AF)
 	if(newPid == 0)
 	{
 		// son process call execve
+		int ret = execve(//XXX NOME COMANDO, ARGOMENTI, VARIABILIAMBIENTE);
+
+		// unreachable point on success
+		if(ret == -1)
+		{
+			perror("Execve error");
+			exit(1);
+		}
 	}
 	else if(newPid < 0)
 	{
 		// handling error
+		perror("Fork error");
+		exit(1);
 	}
 	else if(newPid > 0)
 	{
+		int status = 0, retValue = 0;
+		
 		// father process call waitpid
+		pid_t retWait = waitpid(newPid, &status, 0);
+		
+		if(retWait < 0)
+		{
+			perror("Waitpid error");
+			exit(1);
+		}
+		else
+		{
+			// Handling waitpid return status
+			if(WIFEXITED(status))
+			{
+				retValue = WEXITSTATUS(status);
+				returnStatusLog(//XXX NOME COMANDO, valore ritorno);
+			}
+			else
+			{
+				returnStatusLog(//XXX NOME COMANDO, valore ritorno, ERRORE);
+			}
+		}
 	}
 }
 
 static void execDel(struct neighBourBlock *neighBour, unsigned char AF)
+{
+
+}
+
+void setExec4RecCmd(char *ip4RecCmd)
+{
+
+}
+
+void setExec6RecCmd(char *ip6RecCmd)
+{
+
+}
+
+void setExec4DelCmd(char *ip4DelCmd)
+{
+
+}
+
+void setExec6DelCmd(char *ip6DelCmd)
 {
 
 }

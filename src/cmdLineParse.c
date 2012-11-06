@@ -234,48 +234,39 @@ static void setTimeout(char *timeOut)
 {
 	if(timeoutCalled == FALSE)
 	{
-		int intTimeout = 0;
+		int intTimeout = atoi(timeOut);
 
 		timeoutCalled = TRUE;
-
-		if(sscanf(timeOut, "%d", &intTimeout) < 0)
-		{
-			// TODO BETTER ERRORS HANDLING
-			perror("sscanf");
-			exit(1);
-		}
+		
+		if((intTimeout <= 0) || (intTimeout >= MAXTIMEOUT))
+			help();
 		else
-		{
-			if((intTimeout <= 0) || (intTimeout >= MAXTIMEOUT))
-				help();
-		}
-
-		setIpGcExpire(intTimeout);
+			setIpGcExpire(intTimeout);
 	}
 	else
 		help();
 }
 
-static void setIP4RecCommand(char *ip4RecCmd)
+static void setIP4RxCommand(char *ip4RxCmd)
 {
 	
 	if(execRX4 == FALSE)
 	{
 		execRX4 = TRUE;
 
-		setExec4RecCmd(ip4RecCmd);
+		setExec4RecCmd(ip4RxCmd);
 	}
 	else
 		help();
 }
 
-static void setIP6RecCommand(char *ip6RecCmd)
+static void setIP6RxCommand(char *ip6RxCmd)
 {
 	if(execRX6 == FALSE)
 	{
 		execRX6 = TRUE;
 
-		setExec6RecCmd(ip6RecCmd);
+		setExec6RecCmd(ip6RxCmd);
 	}
 	else
 		help();
@@ -385,11 +376,11 @@ void parseCmdLine(int argc, char *argv[])
 				break;
 				
 				case 'x':
-					setIP4RecCommand(optarg);
+					setIP4RxCommand(optarg);
 				break;
 				
 				case 'X':
-					setIP6RecCommand(optarg);
+					setIP6RxCommand(optarg);
 				break;
 				
 				case 'z':

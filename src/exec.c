@@ -25,6 +25,16 @@
 #include <unistd.h>
 #include "exec.h"
 
+static char *ip4RecCommand= NULL;
+static char *ip4RecArguments = NULL;
+static char *ip6RecCommand= NULL;
+static char *ip6RecArguments = NULL;
+
+static char *ip4DelCommand= NULL;
+static char *ip4DelArguments = NULL;
+static char *ip6DelCommand= NULL;
+static char *ip6DelArguments = NULL;
+
 static void execRx(struct neighBourBlock *neighBour, unsigned char AF)
 {
 	pid_t newPid = fork();
@@ -82,7 +92,7 @@ static void execDel(struct neighBourBlock *neighBour, unsigned char AF)
 
 void setExec4RecCmd(char *ip4RecCmd)
 {
-
+	
 }
 
 void setExec6RecCmd(char *ip6RecCmd)

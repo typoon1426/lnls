@@ -25,24 +25,80 @@
 #include <unistd.h>
 #include "exec.h"
 
-static char *ip4RecCommand= NULL;
-static char *ip4RecArguments = NULL;
-static char *ip6RecCommand= NULL;
-static char *ip6RecArguments = NULL;
+static char *envVars[6];
+static char addressFamily[6];
+static char L3Addr[ASCII_BUF];
+static char L2Addr[ASCII_BUF];
+static char ifName[IF_NAMESIZE];
+static char lastSeenTS[ASCII_TS_LEN]; // TODO DEFINIRE LUNGHEZZA E TIPO DEL TIMESTAMP
 
-static char *ip4DelCommand= NULL;
-static char *ip4DelArguments = NULL;
-static char *ip6DelCommand= NULL;
-static char *ip6DelArguments = NULL;
+static char *ip4RxCmdName = NULL;
+static char *ip4RxCmdArgs = NULL;
+static char *ip6RxCmdName = NULL;
+static char *ip6RxCmdArgs = NULL;
 
-static void execRx(struct neighBourBlock *neighBour, unsigned char AF)
+static char *ip4DelCmdName = NULL;
+static char *ip4DelCmdArgs = NULL;
+static char *ip6DelCmdName = NULL;
+static char *ip6DelCmdArgs = NULL;
+
+static void setEnvVars(struct neighBourBlock *neighBour)
 {
-	pid_t newPid = fork();
+	if(neighBour->addressFamily == AF_INET)
+	{
+		
+	}
+	else if(neighBour->addressFamily == AF_INET6)
+	{
+	
+	}
+}
+
+static inline void setCmd(char *cmdName, char *cmdArgs, unsigned char opCode, unsigned char AF)
+{
+	if(opCode == RX)
+	{
+		if(AF == AF_INET)
+		{
+			commandName = ip4RxCmdName;
+			commandArgs = ip4RxCmdArgs:
+		}
+		else
+		{
+			commandName = ip6RxCmdName;
+			commandArgs = ip6RxCmdArgs:
+		}
+	}
+	else if(opCode == DEL)
+	{
+		if(AF == AF_INET)
+		{
+			commandName = ip4DelCmdName;
+			commandArgs = ip4DelCmdArgs:
+		}
+		else
+		{
+			commandName = ip6DelCmdName;
+			commandArgs = ip6DelCmdArgs:
+		}
+	}
+}
+
+void execCmd(struct neighBourBlock *neighBour, unsigned char opCode, unsigned char AF)
+{
+	pid_t newPid = 0;
+	char *commandName = NULL;
+	char *commandArgs = NULL;
+	
+	setCmd(commandName, commandArgs, opCode, AF);
+	setEnvVars(neighBour);
+	
+	newPid = fork();
 	
 	if(newPid == 0)
 	{
 		// son process call execve
-		int ret = execve(//XXX NOME COMANDO, ARGOMENTI, VARIABILIAMBIENTE);
+		int ret = execve(commandName, commandArgs, envVars);
 
 		// unreachable point on success
 		if(ret == -1)
@@ -85,47 +141,26 @@ static void execRx(struct neighBourBlock *neighBour, unsigned char AF)
 	}
 }
 
-static void execDel(struct neighBourBlock *neighBour, unsigned char AF)
+inline void setExecIP4RxCmd(char *ip4RxCommand, char *ip4RxArguments)
 {
-
+	ip4RxCmdName = ip4RxCommand;
+	ip4RxCmdArgs = ip4RxArguments;
 }
 
-void setExec4RecCmd(char *ip4RecCmd)
+inline void setExecIP6RxCmd(char *ip6RxCommand, char *ip6RxArguments)
 {
-	
+	ip6RxCmdName = ip6RxCommand;
+	ip6RxCmdArgs = ip6RxArguments;
 }
 
-void setExec6RecCmd(char *ip6RecCmd)
+inline void setExecIP4DelCmd(char *ip4DelCommand, char *ip4DelArguments)
 {
-
+	ip4DelCmdName = ip4DelCommand;
+	ip4DelCmdArgs = ip4DelArguments;
 }
 
-void setExec4DelCmd(char *ip4DelCmd)
+inline void setExecIP6DelCmd(char *ip6DelCommand, char *ip6DelArguments)
 {
-
-}
-
-void setExec6DelCmd(char *ip6DelCmd)
-{
-
-}
-
-inline void hookRcvPair4(struct neighBourBlock *neighBour)
-{
-	execRx(neighBour, AF_INET);
-}
-
-inline void hookRcvPair6(struct neighBourBlock *neighBour)
-{
-	execRx(neighBour, AF_INET6);
-}
-
-inline void hookRemPair4(struct neighBourBlock *neighBour)
-{
-	execDel(neighBour, AF_INET);
-}
-
-inline void hookRemPair6(struct neighBourBlock *neighBour)
-{
-	execDel(neighBour, AF_INET6);
+	ip6DelCmdName = ip6DelCommand;
+	ip6DelCmdArgs = ip6DelArguments;
 }

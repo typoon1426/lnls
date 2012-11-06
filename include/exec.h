@@ -1,7 +1,7 @@
 /*   Linux Neighbour logging system Version 0.2
  *   developed as part of VirtualSquare project
  *   
- *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
+ *   Copyright 2012 Michele Cucchi <cucchi@cs.unibo.it>
  *   
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License, version 2, as
@@ -24,7 +24,10 @@
 #include "nlSystem.h"
 #include "timer.h"
 
-inline void hookRcvPair4(struct neighBourBlock *neighBour);
-inline void hookRcvPair6(struct neighBourBlock *neighBour);
-inline void hookRemPair4(struct neighBourBlock *neighBour);
-inline void hookRemPair6(struct neighBourBlock *neighBour);
+#define	RX 0
+#define DEL 1
+
+inline void setExecIP4RxCmd(char *ip4RxCommand, char *ip4RxArguments);
+inline void setExecIP6RxCmd(char *ip6RxCommand, char *ip6RxArguments);
+inline void setExecIP4DelCmd(char *ip4DelCommand, char *ip4DelArguments);
+inline void setExecIP6DelCmd(char *ip6DelCommand, char *ip6DelArguments);

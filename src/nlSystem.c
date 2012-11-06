@@ -281,6 +281,26 @@ static void setSignalHandlers()
 	intervalTimerStart();
 }
 
+inline void hookRx4(struct neighBourBlock *neighBour)
+{
+	execCmd(neighBour, RX, AF_INET);
+}
+
+inline void hookRx6(struct neighBourBlock *neighBour)
+{
+	execCmd(neighBour, RX, AF_INET6);
+}
+
+inline void hookDel4(struct neighBourBlock *neighBour)
+{
+	execCmd(neighBour, DEL, AF_INET);
+}
+
+inline void hookDel6(struct neighBourBlock *neighBour)
+{
+	execCmd(neighBour, DEL, AF_INET6);
+}
+
 int main(int argc, char *argv[])
 {
 	// parse command line arguments

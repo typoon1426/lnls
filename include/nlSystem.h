@@ -40,6 +40,7 @@
 #define STDOUTPUT 1
 #define LOG 1
 #define NOLOG 0
+#define ASCII_TS_LEN 20
 
 #define	DEBUG 5
 #define STDOUT 1
@@ -74,4 +75,9 @@ struct neighBourBlock {
 	struct neighBourBlock *t_prev;
 
 } __attribute__((packed));
+
+inline void hookRx4(struct neighBourBlock *neighBour);
+inline void hookRx6(struct neighBourBlock *neighBour);
+inline void hookDel4(struct neighBourBlock *neighBour);
+inline void hookDel6(struct neighBourBlock *neighBour);
 #endif

@@ -75,6 +75,45 @@ static void printUsage(void)
 	fprintf(stdout, "%s", usage);
 }
 
+// Extract the first word of a space separated and null terminated word list of max len characters
+static void extractCmdNameArgs(char *name, char *args, char *str, int len)
+{
+	char *ptr = NULL;
+	int countName = 0, countArgs = 0;
+	
+	// count command name lenght
+	for(ptr = str; ((countName<len) && (*ptr != 0) && (*ptr != 0x20)); ptr++)
+		countName++;
+		
+	// count arguments string lenght
+	for(ptr = (str+countName+1); ((countArgs<len) && (*ptr != 0)); ptr++)
+		countArgs++;
+		
+	// alloc space to save command name
+	name = (char *) malloc((countName+1)*sizeof(char));
+	
+	if(name == NULL)
+	{
+		perror("Malloc name error:");
+		exit(1);
+	}
+	
+	strncpy(name, str, countName);
+	*(name+countName+1) = '\0';
+	
+	// alloc space to save arguments list
+	args = (char *) malloc((countArgs+1)*sizeof(char));
+	
+	if(args == NULL)
+	{
+		perror("Malloc args error:");
+		exit(1);
+	}
+	
+	strncpy(args, str, countArgs);
+	*(name+countArgs+1) = '\0'; 
+}
+
 static void fileLog(char *logFileName)
 {
 	FILE *stream = NULL;
@@ -249,12 +288,16 @@ static void setTimeout(char *timeOut)
 
 static void setIP4RxCommand(char *ip4RxCmd)
 {
-	
 	if(execRX4 == FALSE)
 	{
 		execRX4 = TRUE;
-
-		setExec4RecCmd(ip4RxCmd);
+		
+		char *IP4RxCmdName = NULL;
+		char *IP4RxCmdArgs = NULL;
+		
+		extractCmdNameArgs(IP4RxCmdName, IP4RxCmdArgs, ip4RxCmd, MAXSTRCMD_LEN);
+		
+		setExecIP4RxCmd(IP4RxCmdName, IP4RxCmdArgs);
 	}
 	else
 		help();

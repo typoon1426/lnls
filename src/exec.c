@@ -38,7 +38,7 @@ static const char l2[] = "L2=";
 static const char iface[] = "IFACE="; 
 static const char tstamp[] = "TSTAMP=";
 
-static char *envVars[5];
+static char *envVars[6];
 static char addressFamily[AF_LEN];
 static char L3Addr[L3_LEN];
 static char L2Addr[L2_LEN];
@@ -46,14 +46,14 @@ static char ifName[IFACE_LEN];
 static char lastSeenTS[ASCII_TSTAMP_LEN]; // TODO DEFINIRE LUNGHEZZA E TIPO DEL TIMESTAMP
 
 static char *ip4RxCmdName = NULL;
-static char *ip4RxCmdArgs = NULL;
+static char **ip4RxCmdArgs = NULL;
 static char *ip6RxCmdName = NULL;
-static char *ip6RxCmdArgs = NULL;
+static char **ip6RxCmdArgs = NULL;
 
 static char *ip4DelCmdName = NULL;
-static char *ip4DelCmdArgs = NULL;
+static char **ip4DelCmdArgs = NULL;
 static char *ip6DelCmdName = NULL;
-static char *ip6DelCmdArgs = NULL;
+static char **ip6DelCmdArgs = NULL;
 
 static void setEnvVars(struct neighBourBlock *neighBour)
 {
@@ -63,7 +63,8 @@ static void setEnvVars(struct neighBourBlock *neighBour)
 	envVars[2] = L2Addr;
 	envVars[3] = ifName;
 	envVars[4] = lastSeenTS;
-	
+	envVars[5] = NULL;
+
 	// timestamp
 	snprintf(lastSeenTS, ASCII_TSTAMP_LEN, "%s%lld", tstamp, (long long int) neighBour->last_seen);
 	
@@ -93,7 +94,7 @@ static void setEnvVars(struct neighBourBlock *neighBour)
 	}	
 }
 
-static inline void setCmd(char *cmdName, char *cmdArgs, unsigned char opCode, unsigned char AF)
+static inline void setCmd(char *cmdName, char **cmdArgs, unsigned char opCode, unsigned char AF)
 {
 	if(opCode == RX)
 	{
@@ -127,9 +128,10 @@ void execCmd(struct neighBourBlock *neighBour, unsigned char opCode, unsigned ch
 {
 	pid_t newPid = 0;
 	char *commandName = NULL;
-	char *commandArgs = NULL;
+	char **commandArgs = NULL;
 	
 	setCmd(commandName, commandArgs, opCode, AF);
+
 	setEnvVars(neighBour);
 	
 	newPid = fork();
@@ -169,35 +171,49 @@ void execCmd(struct neighBourBlock *neighBour, unsigned char opCode, unsigned ch
 			// Handling waitpid return status
 			if(WIFEXITED(status))
 			{
-				
 				retValue = WEXITSTATUS(status);
-				logErrorStatus(errorStr);
+
+				if(retValue != 0)
+				{
+					char errorStr[100];
+					memset(errorStr, 0, 100);
+
+				
+					snprintf(errorStr, 100, "%s has returned %d.", commandName, retValue);				
+					logErrorStatus(errorStr);
+				}
 			}
 			else
-				logErrorStatus(genErrorStr);
+			{
+				char errorStr[100];
+				memset(errorStr, 0, 100);
+
+				snprintf(errorStr, 100, "Error returning from command, %s", commandName);	
+				logErrorStatus(errorStr);
+			}
 		}
 	}
 }
 
-inline void setExecIP4RxCmd(char *ip4RxCommand, char *ip4RxArguments)
+inline void setExecIP4RxCmd(char *ip4RxCommand, char **ip4RxArguments)
 {
 	ip4RxCmdName = ip4RxCommand;
 	ip4RxCmdArgs = ip4RxArguments;
 }
 
-inline void setExecIP6RxCmd(char *ip6RxCommand, char *ip6RxArguments)
+inline void setExecIP6RxCmd(char *ip6RxCommand, char **ip6RxArguments)
 {
 	ip6RxCmdName = ip6RxCommand;
 	ip6RxCmdArgs = ip6RxArguments;
 }
 
-inline void setExecIP4DelCmd(char *ip4DelCommand, char *ip4DelArguments)
+inline void setExecIP4DelCmd(char *ip4DelCommand, char **ip4DelArguments)
 {
 	ip4DelCmdName = ip4DelCommand;
 	ip4DelCmdArgs = ip4DelArguments;
 }
 
-inline void setExecIP6DelCmd(char *ip6DelCommand, char *ip6DelArguments)
+inline void setExecIP6DelCmd(char *ip6DelCommand, char **ip6DelArguments)
 {
 	ip6DelCmdName = ip6DelCommand;
 	ip6DelCmdArgs = ip6DelArguments;

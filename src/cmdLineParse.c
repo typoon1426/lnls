@@ -61,25 +61,94 @@ static const char programName[] = "lnls";
 static const char started[] = "started";
 static unsigned char daemonSet = 0, commandLineRange = 0, afCalled = FALSE, interfacesCalled = FALSE, subnetsCalled = FALSE, timeoutCalled = FALSE, execRX4 = FALSE, execRX6 = FALSE, execDel4 = FALSE, execDel6 = FALSE;
 
-static void printUsage(void)
+static inline void printUsage(void)
 {
 	fprintf(stdout, "%s", usage);
+}
+
+/* TEMPORANEA CODICE DELLA FLUSH TOKEN */
+{
+	// Handling tokes in the fifo
+	int len = getTokenLenSum();
+	int offset = 0;
+	char *argument = (char *) malloc(len); // TODO AGGIUNGERE UN CARATTERE DI SPAZIATURA TRA I TOKEN E NULL TERMINATED
+
+	if(argument == NULL)
+	{
+		perror("Malloc argument error:");
+		exit(1);
+	}
+
+	while(!tokenFifoEmpty())
+	{
+		struct argumentToken *deqToken = dequeueToken();
+		
+		memcpy(argument+offset, deqToken->token, deqToken->len);
+		memset(argument+offset+deqToken->len, 0x20, 1);
+		offset += deqToken->len+1;
+		
+		argTokenFree(deqToken); //XXX free argument token struct and his internal pointer to token string
+	}
+
+	enqueueGlobal(argument);
+}
+
+static void tokenizeCmdNameArgs(char *commandName, char **commandArgs, char *inputString, int len)
+{
+	char *token = NULL;
+	char *newSubToken = NULL;
+	
+	do
+	{
+		if(token != NULL)
+			inputString = NULL;
+	
+		token = strtok_r(inputString, " ", &newSubToken);
+		
+		if(token != NULL)
+		{
+			if(inputString != NULL)
+			{
+				commandName = token;
+				enqueueGlobal(token); // Each token is a pair of a cli argument and is value
+			}			
+			else
+			{
+				if(token[0] == "-")
+				{
+					if(!tokenFifoEmpty())
+					{
+						flushTokenFifo();
+						// insert the new token in the empty fifo
+						enqueueToken(token);
+					}
+					else
+						enqueueToken(token);
+				}
+				else
+					enqueueToken(token);
+			}
+		}
+		else
+		{
+			flushTokenFifo();
+		}
+	}
+	while (token != NULL);
+
+	// TODO QUI VA ALLOCATO commandArgs UN CALLOC CON OGNI ELEMENTO UN TOKEN, FARE LA FREE DI OGNI STRUTTURA DELLA FIFO SE NO MEMORY LEAK BUG
 }
 
 // Extract the first word of a space separated and null terminated word list of max len characters
 static void extractCmdNameArgs(char *name, char *args, char *str, int len)
 {
 	char *ptr = NULL;
-	int countName = 0, countArgs = 0;
+	int countName = 0, argsLen = 0;
 	
 	// count command name lenght
 	for(ptr = str; ((countName<len) && (*ptr != 0) && (*ptr != 0x20)); ptr++)
 		countName++;
-		
-	// count arguments string lenght
-	for(ptr = (str+countName+1); ((countArgs<len) && (*ptr != 0)); ptr++)
-		countArgs++;
-		
+			
 	// alloc space to save command name
 	name = (char *) malloc((countName+1)*sizeof(char));
 	
@@ -89,20 +158,21 @@ static void extractCmdNameArgs(char *name, char *args, char *str, int len)
 		exit(1);
 	}
 	
+	memset(name, 0, (countName+1)*sizeof(char));
 	strncpy(name, str, countName);
-	*(name+countName+1) = '\0';
-	
-	// alloc space to save arguments list
-	args = (char *) malloc((countArgs+1)*sizeof(char));
-	
+
+	// argument list
+	argsLen = strlen(str);
+	args = (char *) malloc((argsLen+1)*sizeof(char));
+
 	if(args == NULL)
 	{
 		perror("Malloc args error:");
 		exit(1);
 	}
-	
-	strncpy(args, str, countArgs);
-	*(name+countArgs+1) = '\0'; 
+
+	memset(args, 0, (argsLen+1)*sizeof(char));
+	strncpy(args, str, argsLen);
 }
 
 static void fileLog(char *logFileName)

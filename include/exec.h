@@ -26,6 +26,11 @@
 
 #define	RX 0
 #define DEL 1
+#define AF_LEN 10
+#define L3_LEN 44
+#define L2_LEN 22
+#define IFACE_LEN 18
+#define ASCII_TS_LEN 28
 
 inline void setExecIP4RxCmd(char *ip4RxCommand, char *ip4RxArguments);
 inline void setExecIP6RxCmd(char *ip6RxCommand, char *ip6RxArguments);

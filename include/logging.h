@@ -34,4 +34,6 @@ unsigned char getMode(void);
 void debugPrint(struct neighBourBlock *neigh);
 void saveFileName(char *pidFileName);
 char *getPidFileName(void);
-
+void etherAddr2Str(const unsigned char *ether, char *buf, int srclen, int dstlen);
+void inet2Ascii(const unsigned char *inet, char *buf, int inetLen, int bufLen);
+void inet62Ascii(const unsigned char *inet6, char *buf, int inet6Len, int bufLen);

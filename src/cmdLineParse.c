@@ -308,8 +308,13 @@ static void setIP6RxCommand(char *ip6RxCmd)
 	if(execRX6 == FALSE)
 	{
 		execRX6 = TRUE;
+		
+		char *IP6RxCmdName = NULL;
+		char *IP6RxCmdArgs = NULL;
 
-		setExec6RecCmd(ip6RxCmd);
+		extractCmdNameArgs(IP6RxCmdName, IP6RxCmdArgs, ip6RxCmd, MAXSTRCMD_LEN);
+		
+		setExecIP6RxCmd(IP6RxCmdName, IP6RxCmdArgs);
 	}
 	else
 		help();
@@ -320,8 +325,13 @@ static void setIP4DelCommand(char *ip4DelCmd)
 	if(execDel4 == FALSE)
 	{
 		execDel4 = TRUE;
+		
+		char *IP4DelCmdName = NULL;
+		char *IP4DelCmdArgs = NULL;
+		
+		extractCmdNameArgs(IP4DelCmdName, IP4DelCmdArgs, ip4DelCmd, MAXSTRCMD_LEN);
 
-		setExec4DelCmd(ip4DelCmd);
+		setExecIP4DelCmd(IP4DelCmdName, IP4DelCmdArgs);
 	}
 	else
 		help();
@@ -332,8 +342,13 @@ static void setIP6DelCommand(char *ip6DelCmd)
 	if(execDel6 == FALSE)
 	{
 		execDel6 = TRUE;
+		
+		char *IP6DelCmdName = NULL;
+		char *IP6DelCmdArgs = NULL;
+		
+		extractCmdNameArgs(IP6DelCmdName, IP6DelCmdArgs, ip6DelCmd, MAXSTRCMD_LEN);
 
-		setExec6DelCmd(ip6DelCmd);
+		setExecIP6DelCmd(IP6DelCmdName, IP6DelCmdArgs);
 	}
 	else
 		help();

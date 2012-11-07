@@ -24,12 +24,20 @@
  
 #include <unistd.h>
 #include "exec.h"
+#include "logging.h"
 
-static char *envVars[6];
-static char addressFamily[6];
-static char L3Addr[ASCII_BUF];
-static char L2Addr[ASCII_BUF];
-static char ifName[IF_NAMESIZE];
+static const char inet[] = "AF=INET\0";
+static const char inet6[] = "AF=INET6\0";
+static const char l3[] = "L3=";
+static const char l2[] = "L2=";
+static const char iface[] = "IFACE="; 
+static const char tstamp[] = "TSTAMP=";
+
+static char *envVars[5];
+static char addressFamily[AF_LEN];
+static char L3Addr[L3_LEN];
+static char L2Addr[L2_LEN];
+static char ifName[IFACE_LEN];
 static char lastSeenTS[ASCII_TS_LEN]; // TODO DEFINIRE LUNGHEZZA E TIPO DEL TIMESTAMP
 
 static char *ip4RxCmdName = NULL;
@@ -44,14 +52,39 @@ static char *ip6DelCmdArgs = NULL;
 
 static void setEnvVars(struct neighBourBlock *neighBour)
 {
+	// array elements
+	envVars[1] = L3Addr;
+	envVars[2] = L2Addr;
+	envVars[3] = ifName;
+	envVars[4] = lastSeenTS;
+	
+	// timestamp
+	snprintf(lastSeenTS, ASCII_TS_LEN, "%s%lld", tstamp, neighBour->last_seen);
+	
+	// interface name
+	memcpy(ifName, iface, 6);
+	memcpy(ifName+6, neighBour->if_name, IFACE_LEN-6);
+	ifName[IFACE_LEN-1] = "\0";
+	
+	// level 2 address
+	memcpy(L2Addr, l2, 3);
+	L2Addr[L2_LEN-1] = "\0";
+	etherAddr2Str(neighBour->etherAddr, L2Addr+3, ETH_ALEN, L2_LEN-3)
+	
+	// level 3 address
+	memcpy(L3Addr, l3, 3);
+	L3Addr[L3_LEN-1] = "\0";
+		
 	if(neighBour->addressFamily == AF_INET)
 	{
-		
+		envVars[0] = inet; // address family
+		inet2Ascii(neighBour->inetAddr, L3Addr+3, INETLEN, L3_LEN-3);
 	}
 	else if(neighBour->addressFamily == AF_INET6)
 	{
-	
-	}
+		envVars[0] = inet6; // address family
+		inet2Ascii(neighBour->inet6Addr, L3Addr+3, INET6LEN, L3_LEN-3);
+	}	
 }
 
 static inline void setCmd(char *cmdName, char *cmdArgs, unsigned char opCode, unsigned char AF)

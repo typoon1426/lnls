@@ -49,7 +49,7 @@ static FILE *logFile = NULL;
 static unsigned char mode = 0;
 static char pidFilePtr[512];
 
-static void etherAddr2Str(const unsigned char *ether, char *buf, int srclen, int dstlen)
+void etherAddr2Str(const unsigned char *ether, char *buf, int srclen, int dstlen)
 {
 	int i, w = 0;
 
@@ -59,6 +59,36 @@ static void etherAddr2Str(const unsigned char *ether, char *buf, int srclen, int
 			w += snprintf(buf+w, dstlen, "%02hhx", *((unsigned char *) ether+i));
 		else
 			w += snprintf(buf+w, dstlen, ":%02hhx", *((unsigned char *) ether+i));
+	}
+}
+
+void inet2Ascii(const unsigned char *inet, char *buf, int inetLen, int bufLen)
+{
+	struct sockaddr_in afinet;
+	memset(&afinet, 0, sizeof(afinet));
+
+	afinet.sin_family = AF_INET;
+	memcpy(&(afinet.sin_addr.s_addr), inet, inetLen);
+
+	if(getnameinfo((struct sockaddr *) &afinet, sizeof(afinet), buf, bufLen, 0, 0, NI_NUMERICHOST) < 0)
+	{
+		perror("neigh2Ascii getnameinfo ipv4");
+		exit(1);
+	}
+}
+
+void inet62Ascii(const unsigned char *inet6, char *buf, int inet6Len, int bufLen)
+{
+	struct sockaddr_in6 afinet6;
+	memset(&afinet6, 0, sizeof(afinet6));
+
+	afinet6.sin6_family = AF_INET6;		
+	memcpy(&(afinet6.sin6_addr.s6_addr), inet6, inet6Len);
+
+	if(getnameinfo((struct sockaddr *) &afinet6, sizeof(afinet6), buf, bufLen, 0, 0, NI_NUMERICHOST) < 0)
+	{
+		perror("neigh2Ascii getnameinfo ipv6");
+		exit(1);
 	}
 }
 
@@ -74,39 +104,17 @@ static void neigh2Ascii(struct neighBourBlock *neigh, char *printOutBuf, int out
 	// add ip to string
 	if(neigh->addressFamily == AF_INET)
 	{
-		struct sockaddr_in inet;
-		memset(&inet, 0, sizeof(inet));
-
-		inet.sin_family = AF_INET;
-		memcpy(&(inet.sin_addr.s_addr), neigh->inetAddr, INETLEN);
-
-		if(getnameinfo((struct sockaddr *) &inet, sizeof(inet), netAddr, sizeof(netAddr), 0, 0, NI_NUMERICHOST) < 0)
-		{
-			perror("neigh2Ascii getnameinfo ipv4");
-			exit(1);
-		}
-
+		inet2Ascii(neigh->inetAddr, netAddr, INETLEN, ASCII_BUF);
 		w += snprintf(printOutBuf+w, outLen, "%s %s, ", inetString, netAddr);
 	}
 	else if(neigh->addressFamily == AF_INET6)
 	{
-		struct sockaddr_in6 inet6;
-		memset(&inet6, 0, sizeof(inet6));
-
-		inet6.sin6_family = AF_INET6;		
-		memcpy(&(inet6.sin6_addr.s6_addr), neigh->inetAddr, INET6LEN);
-
-		if(getnameinfo((struct sockaddr *) &inet6, sizeof(inet6), netAddr, sizeof(netAddr), 0, 0, NI_NUMERICHOST) < 0)
-		{
-			perror("neigh2Ascii getnameinfo ipv6");
-			exit(1);
-		}
-
+		inet62Ascii(neigh->inetAddr, netAddr, INET6LEN, ASCII_BUF);
 		w += snprintf(printOutBuf+w, outLen, "%s %s, ", inet6String, netAddr);
 	}
 	
 	// add mac address to string
-	etherAddr2Str(neigh->etherAddr, linkAddr, ETH_ALEN, sizeof(linkAddr));
+	etherAddr2Str(neigh->etherAddr, linkAddr, ETH_ALEN, ASCII_BUF);
 	w += snprintf(printOutBuf+w, outLen, "%s %s", etherAddrString, linkAddr);	
 }
 

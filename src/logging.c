@@ -123,6 +123,15 @@ static void timeStamp(time_t *time, char *buf, int len)
 	strftime(buf, len, timeFormat, localtime(time));
 }
 
+static void string2FdPrint(char *str, FILE *fd)
+{
+	char timeStampBuf[ASCII_BUF];
+	time_t tStamp = time(NULL);
+	
+	timeStamp(&tStamp, timeStampBuf, sizeof(timeStampBuf));
+	fprintf(fd, "[ %s ] %s\n", timeStampBuf, str);
+}
+
 static void str2FdPrint(struct neighBourBlock *neigh, FILE *fd)
 {
 	char str[PRINTOUTBUF];
@@ -182,6 +191,24 @@ void setFileLogStream(FILE *logStream)
 FILE *getFileLogStream(void)
 {
 	return logFile;
+}
+
+void logErrorStatus(char *string)
+{
+	switch (mode)
+	{
+		case STDOUT:
+			string2FdPrint(string, stdout);
+		break;
+
+		case FILEOUT:	
+			string2FdPrint(string, logFile);
+		break;
+
+		case SYSLOG:	
+			syslog(LOG_INFO, string);
+		break;
+	}
 }
 
 void logWrite(struct neighBourBlock *neigh)

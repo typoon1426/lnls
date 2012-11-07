@@ -21,6 +21,9 @@
 /* 
  *		Exec exported functions module
  */
+#ifndef __EXEC_H__
+#define __EXEC_H__ 1
+
 #include "nlSystem.h"
 #include "timer.h"
 
@@ -30,9 +33,11 @@
 #define L3_LEN 44
 #define L2_LEN 22
 #define IFACE_LEN 18
-#define ASCII_TS_LEN 28
+#define ASCII_TSTAMP_LEN 28
 
 inline void setExecIP4RxCmd(char *ip4RxCommand, char *ip4RxArguments);
 inline void setExecIP6RxCmd(char *ip6RxCommand, char *ip6RxArguments);
 inline void setExecIP4DelCmd(char *ip4DelCommand, char *ip4DelArguments);
 inline void setExecIP6DelCmd(char *ip6DelCommand, char *ip6DelArguments);
+void execCmd(struct neighBourBlock *neighBour, unsigned char opCode, unsigned char AF);
+#endif

@@ -148,11 +148,11 @@ static inline void ip_gc(struct neighBourBlock *e, void *now)
 		switch(e->addressFamily)
 		{
 			case AF_INET:
-				hookRemPair4(e);
+				hookDel4(e);
 			break;
 			
 			case AF_INET6:
-				hookRemPair6(e);
+				hookDel6(e);
 			break;
 		}
 

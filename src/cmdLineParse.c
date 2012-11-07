@@ -36,17 +36,8 @@
 #include "nlSystem.h"
 #include "filters.h"
 #include "hashHandlers.h"
-
-#define DAEMONIZE_WEIGHT 1
-#define PIDFILE_WEIGHT 1
-#define GROUPBYINT_WEIGHT 2
-#define SYSLOG_WEIGHT 11
-#define FILELOG_WEIGHT 11
-#define STDOUT_WEIGHT 14
-#define HELP_WEIGHT 14
-#define DEBUG_WEIGHT 14
-#define MINRANGE 10
-#define MAXRANGE 15
+#include "cmdLineParse.h"
+#include "exec.h"
 
 static const char usage[] = "Usage: lnls [OPTIONS]\n"
 			"Runs Neighbour Logging System.\n"
@@ -68,7 +59,7 @@ static const char usage[] = "Usage: lnls [OPTIONS]\n"
 
 static const char programName[] = "lnls";
 static const char started[] = "started";
-static unsigned char daemonSet = 0, commandLineRange = 0, afCalled = interfacesCalled = subnetsCalled = timeoutCalled = execRX4 = execRX6 = execDel4 = execDel6 = FALSE;
+static unsigned char daemonSet = 0, commandLineRange = 0, afCalled = FALSE, interfacesCalled = FALSE, subnetsCalled = FALSE, timeoutCalled = FALSE, execRX4 = FALSE, execRX6 = FALSE, execDel4 = FALSE, execDel6 = FALSE;
 
 static void printUsage(void)
 {
@@ -381,9 +372,9 @@ void parseCmdLine(int argc, char *argv[])
 			{"subnets", 1, 0, 'S'},
 			{"timeout", 1, 0, 'T'},
 			{"exec-rx4", 1, 0, 'x'},
-			{"exec-rx6", 1, 0, 'X'}
+			{"exec-rx6", 1, 0, 'X'},
 			{"exec-del4", 1, 0, 'z'},
-			{"exec-del6", 1, 0, 'Z'}
+			{"exec-del6", 1, 0, 'Z'},
 			{0, 0, 0, 0}
 			};
 

@@ -148,7 +148,7 @@ static void pktSave(struct neighBourBlock *neighBour)
 				// mask SIGALRM 
 				mask();
 				
-				hookRcvPair4(neighBour);
+				hookRx4(neighBour);
 				
 				// unmask SIGALRM 
 				unMask();
@@ -158,7 +158,7 @@ static void pktSave(struct neighBourBlock *neighBour)
 				// mask SIGALRM 
 				mask();
 				
-				hookRcvPair6(neighBour);
+				hookRx6(neighBour);
 				
 				// unmask SIGALRM 
 				unMask();

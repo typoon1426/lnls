@@ -21,8 +21,20 @@
 /* 
  *		Command Line parser export functions module
  */
+#ifndef __CMDLINEPARSE_H__
+#define __CMDLINEPARSE_H__ 1
 
 #define MAXSTRCMD_LEN 100
+#define DAEMONIZE_WEIGHT 1
+#define PIDFILE_WEIGHT 1
+#define GROUPBYINT_WEIGHT 2
+#define SYSLOG_WEIGHT 11
+#define FILELOG_WEIGHT 11
+#define STDOUT_WEIGHT 14
+#define HELP_WEIGHT 14
+#define DEBUG_WEIGHT 14
+#define MINRANGE 10
+#define MAXRANGE 15
 
 void parseCmdLine(int argc, char *argv[]);
-
+#endif

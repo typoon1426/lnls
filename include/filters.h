@@ -22,6 +22,9 @@
  *		Filter module exported functions
  */
 
+#ifndef __FILTERS_H__
+#define __FILTERS_H__ 1
+
 #include "nlSystem.h"
 
 void filtersInit(void);
@@ -31,3 +34,4 @@ void filterAddInterface(unsigned int int_index);
 int filterAddSubnet(char *subNet);
 void filterSubnetEnd(void);
 int filtersActived(void);
+#endif

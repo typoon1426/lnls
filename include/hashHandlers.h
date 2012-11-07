@@ -21,8 +21,12 @@
  *		Hash Table Module
  */
 
+#ifndef __HASHHANDLERS_H__
+#define __HASHHANDLERS_H__ 1
+
 #define MAXTIMEOUT 3600
 
 int neighHashFindAdd(struct neighBourBlock *neighBlock);
 void ip_hash_gc(void);
 void setIpGcExpire(int expireTime);
+#endif

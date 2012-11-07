@@ -22,9 +22,12 @@
  *		Logging module exported functions
  */
 
+#ifndef __LOGGING_H__
+#define __LOGGING_H__ 1
 #include "nlSystem.h"
+#include <stdio.h>
 
-void debugPrint(struct neighBourBlock *neigh);
+void debugPsrint(struct neighBourBlock *neigh);
 void logWrite(struct neighBourBlock *neigh);
 void closeLogFile(void);
 void setFileLogStream(FILE *logStream);
@@ -37,3 +40,5 @@ char *getPidFileName(void);
 void etherAddr2Str(const unsigned char *ether, char *buf, int srclen, int dstlen);
 void inet2Ascii(const unsigned char *inet, char *buf, int inetLen, int bufLen);
 void inet62Ascii(const unsigned char *inet6, char *buf, int inet6Len, int bufLen);
+void logErrorStatus(char *string);
+#endif

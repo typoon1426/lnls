@@ -39,6 +39,24 @@
 #include "cmdLineParse.h"
 #include "exec.h"
 
+static struct argumentToken {
+	char *token;
+	int tokenLen;
+	
+	struct argumentToken *next;
+	struct argumentToken *prev;
+};
+
+static struct tokenQueueHead {
+	struct argumentToken *head;
+	
+	int tokenCount;
+	int tokenLenSum;
+};
+
+static struct tokenQueueHead external;
+static struct tokenQueueHead internal;
+
 static const char usage[] = "Usage: lnls [OPTIONS]\n"
 			"Runs Neighbour Logging System.\n"
 			"  -h, --help                 		Display this help and exit\n"
@@ -66,12 +84,83 @@ static inline void printUsage(void)
 	fprintf(stdout, "%s", usage);
 }
 
-/* TEMPORANEA CODICE DELLA FLUSH TOKEN */
+static inline int getTokenLenSum(struct tokenQueueHead *headQ)
+{
+	return headQ->tokenLenSum;
+}
+
+static inline int getTokenCount(struct tokenQueueHead *headQ)
+{
+	return headQ->tokenCount;
+}
+
+static inline unsigned char emptyTokenQueue(struct tokenQueueHead *headQ)
+{
+	if(headQ->tokenCount > 0)
+		return FALSE;
+	else	
+		return TRUE;
+}
+
+static void enqueueToken(struct tokenQueueHead *headQ, char *token)
+{
+	struct argumentToken *newToken = malloc(sizeof(struct argumentToken));
+	
+	if(newToken == NULL)
+	{
+		perror("Malloc newToken error:");
+		exit(1);
+	}
+	
+	newToken->token = token;
+	newToken-next = newToken->prev = NULL;
+	newToken->tokenLen = strlen(token);
+
+	if(headQ->tokenCount == 0)
+	{
+		headQ->head = newToken;
+	}
+	else
+	{
+		headQ->head->next = newToken;
+		newToken->prev = headQ->head;
+	}
+	
+	headQ->tokenCount++;
+	headQ->tokenSum += newToken->tokenLen;
+}
+
+static struct argumentToken *dequeueToken(struct tokenQueueHead *headQ)
+{
+	struct argumentToken *deQueuedToken = NULL;
+	
+	if((headQ->tokenCount != 0)
+	{
+		deQueuedToken = headQ->head;
+		
+		headQ->head = deQueuedToken->next;
+		if(headQ->head != NULL)
+			headQ->head->prev = NULL;
+		
+		headQ->tokenCount--;
+		headQ->tokenSum -= deQueuedToken->tokenLen;
+	}
+	
+	return deQueuedToken;
+}
+
+static inline void tokenFree(struct argumentToken *token)
+{
+	free(token);
+}
+
+static void flushInternalTokenFifo(void)
 {
 	// Handling tokes in the fifo
-	int len = getTokenLenSum();
+	int len = getTokenLenSum(&internal);
+	int tokenCount = getTokenCount(&internal);
 	int offset = 0;
-	char *argument = (char *) malloc(len); // TODO AGGIUNGERE UN CARATTERE DI SPAZIATURA TRA I TOKEN E NULL TERMINATED
+	char *argument = (char *) malloc((len+tokenCount)*sizeof(char));
 
 	if(argument == NULL)
 	{
@@ -79,21 +168,26 @@ static inline void printUsage(void)
 		exit(1);
 	}
 
-	while(!tokenFifoEmpty())
+	memset(argument, 0, (len+tokenCount)*sizeof(char));
+	
+	while(!tokenFifoEmpty(&internal))
 	{
-		struct argumentToken *deqToken = dequeueToken();
+		struct argumentToken *deqToken = dequeueToken(&internal);
 		
-		memcpy(argument+offset, deqToken->token, deqToken->len);
-		memset(argument+offset+deqToken->len, 0x20, 1);
-		offset += deqToken->len+1;
+		memcpy(argument+offset, deqToken->token, deqToken->tokenLen); // QUI NON DEVE COPIARE IL \0
+		memset(argument+offset+deqToken->tokenLen, 0x20, 1);
+		offset += deqToken->tokenLen+1;
 		
-		argTokenFree(deqToken); //XXX free argument token struct and his internal pointer to token string
+		// free token pointer
+		free(deqToken->token);
+		// free token struct
+		tokenFree(deqToken); 
 	}
 
-	enqueueGlobal(argument);
+	enqueueToken(&external, argument);
 }
 
-static void tokenizeCmdNameArgs(char *commandName, char **commandArgs, char *inputString, int len)
+static void tokenizeCmdNameArgs(char *commandName, char **commandArgs, char *inputString)
 {
 	char *token = NULL;
 	char *newSubToken = NULL;
@@ -110,69 +204,50 @@ static void tokenizeCmdNameArgs(char *commandName, char **commandArgs, char *inp
 			if(inputString != NULL)
 			{
 				commandName = token;
-				enqueueGlobal(token); // Each token is a pair of a cli argument and is value
+				enqueueToken(&external, token); // Each token is a pair of a cli argument and is value
 			}			
 			else
 			{
 				if(token[0] == "-")
 				{
-					if(!tokenFifoEmpty())
+					if(!tokenFifoEmpty(&internal))
 					{
-						flushTokenFifo();
+						flushInternalTokenFifo
 						// insert the new token in the empty fifo
-						enqueueToken(token);
+						enqueueToken(&internal, token);
 					}
 					else
-						enqueueToken(token);
+						enqueueToken(&internal, token);
 				}
 				else
-					enqueueToken(token);
+					enqueueToken(&internal, token);
 			}
 		}
 		else
 		{
-			flushTokenFifo();
+			flushInternalTokenFifo
 		}
 	}
 	while (token != NULL);
 
-	// TODO QUI VA ALLOCATO commandArgs UN CALLOC CON OGNI ELEMENTO UN TOKEN, FARE LA FREE DI OGNI STRUTTURA DELLA FIFO SE NO MEMORY LEAK BUG
-}
-
-// Extract the first word of a space separated and null terminated word list of max len characters
-static void extractCmdNameArgs(char *name, char *args, char *str, int len)
-{
-	char *ptr = NULL;
-	int countName = 0, argsLen = 0;
+	commandArgs = calloc(getTokenCount(&external)+1, sizeof(char *));
 	
-	// count command name lenght
-	for(ptr = str; ((countName<len) && (*ptr != 0) && (*ptr != 0x20)); ptr++)
-		countName++;
-			
-	// alloc space to save command name
-	name = (char *) malloc((countName+1)*sizeof(char));
-	
-	if(name == NULL)
+	if(commandArgs == NULL)
 	{
-		perror("Malloc name error:");
+		perror("Calloc commandargs error:");
 		exit(1);
 	}
 	
-	memset(name, 0, (countName+1)*sizeof(char));
-	strncpy(name, str, countName);
-
-	// argument list
-	argsLen = strlen(str);
-	args = (char *) malloc((argsLen+1)*sizeof(char));
-
-	if(args == NULL)
+	int count = 0;
+	
+	while(!tokenFifoEmpty(&external))
 	{
-		perror("Malloc args error:");
-		exit(1);
+		struct argumentToken *deqToken = dequeueToken(&external);
+		
+		commandArgs[count] = deqToken->token;
+		count++;
+		tokenFree(deqToken); //XXX free argument token struct and his internal pointer to token string
 	}
-
-	memset(args, 0, (argsLen+1)*sizeof(char));
-	strncpy(args, str, argsLen);
 }
 
 static void fileLog(char *logFileName)

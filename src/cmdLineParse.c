@@ -57,27 +57,47 @@ struct tokenQueueHead {
 static struct tokenQueueHead external;
 static struct tokenQueueHead internal;
 
-static const char usage[] = "Usage: lnls [OPTIONS]\n"
-			"Runs Neighbour Logging System.\n"
-			"  -h, --help                 		Display this help and exit\n"
-			"  -d, --daemonize            		Run on background. Optional argument, not valid with debug, help and stdout\n"
-			"  -p, --pidfile filename       		Write the pid of lnls in the file named \"filename\", valid only with daemonize\n"
-			"  -D, --debug                		Print all packet log on standard output, without timing handling. Not valid with other options.\n" 
-			"  -O, --stdout               		Print all packet log on standard output, not valid with: daemonize, debug, filelog and syslog.\n"
-			"  -s, --syslog               		Print all packet log on syslog, not valid with: debug, stdout and filelog\n"
-			"  -F, --filelog filename     		Print all packet log on logfile, not valid with: debug, stdout and syslog\n"
-			"  -A, --addrfamily inet|inet6		Force to log only packets of address family selected.\n"
-			"  -I, --interfaces int1,int2,..   	Force to log only packets from interfaces selected.\n"
-			"  -S, --subnets sub/mask,sub/mask1,.. 	Force to log only packets of subnets selected.\n"
-			"  -T, --timeout 	Set hash table flushing timeout, default is 360 seconds\n"
-			"  -x, --exec-rx4		Set a command to exec when receiving a neighbour with IPv4 address\n"
-			"  -X, --exec-rx6		Set a command to exec when receiving a neighbour with IPv6 address\n"
-			"  -z, --exec-del4		Set a command to exec when a neighbour with IPv4 address has expired\n"
-			"  -Z, --exec-del6		Set a command to exec when a neighbour with IPv6 address has expired\n";
+static const char usage[] = 	"Usage: lnls [OPTIONS]\n"
+				"Runs Neighbour Logging System.\n"
+				"  -h, --help                 		Display this help and exit.\n"
+				"  -d, --daemonize            		Run on background. Optional argument, not valid with debug, help and stdout.\n"
+				"  -p, --pidfile filename       		Write the pid of lnls in the file named \"filename\", valid only with daemonize.\n"
+				"  -D, --debug                		Print all packet log on standard output, without timing handling. Not valid with other options.\n" 
+				"  -O, --stdout               		Print all packet log on standard output, not valid with: daemonize, debug, filelog and syslog.\n"
+				"  -s, --syslog               		Print all packet log on syslog, not valid with: debug, stdout and filelog.\n"
+				"  -F, --filelog filename     		Print all packet log on logfile, not valid with: debug, stdout and syslog.\n"
+				"  -A, --addrfamily inet|inet6		Force to log only packets of address family selected.\n"
+				"  -I, --interfaces int1,int2,..   	Force to log only packets from interfaces selected.\n"
+				"  -S, --subnets sub/mask,sub/mask1,.. 	Force to log only packets of subnets selected.\n"
+				"  -T, --timeout 			Set hash table flushing timeout, default is 360 seconds, min timeout is 1 second and max timeout is 3600 seconds.\n"
+				"  -x, --exec-rx4			Set a command to exec when receiving a neighbour with IPv4 address.\n"
+				"  -X, --exec-rx6			Set a command to exec when receiving a neighbour with IPv6 address.\n"
+				"  -z, --exec-del4			Set a command to exec when a neighbour with IPv4 address has expired.\n"
+				"  -Z, --exec-del6			Set a command to exec when a neighbour with IPv6 address has expired.\n";
 
 static const char programName[] = "lnls";
 static const char started[] = "started";
-static unsigned char daemonSet = 0, commandLineRange = 0, afCalled = FALSE, interfacesCalled = FALSE, subnetsCalled = FALSE, timeoutCalled = FALSE, execRX4 = FALSE, execRX6 = FALSE, execDel4 = FALSE, execDel6 = FALSE;
+static unsigned char daemonSet = 0, commandLineRange = 0, afCalled = FALSE, interfacesCalled = FALSE, subnetsCalled = FALSE, timeoutCalled = FALSE, execRX4Called = FALSE, execRX6Called = FALSE, execDel4Called = FALSE, execDel6Called = FALSE;
+
+inline unsigned char execRX4Setted(void)
+{
+	return execRX4Called;
+}
+
+inline unsigned char execRX6Setted(void)
+{
+	return execRX6Called;
+}
+
+inline unsigned char execDel4Setted(void)
+{
+	return execDel4Called;
+}
+
+inline unsigned char execDel6Setted(void)
+{
+	return execDel6Called;
+}
 
 static inline void printUsage(void)
 {
@@ -204,27 +224,13 @@ static void tokenizeCmdNameArgs(char *commandName, char **commandArgs, char *inp
 			if(inputString != NULL)
 			{
 				commandName = token;
-				enqueueToken(&external, token); // Each token is a pair of a cli argument and is value
+				enqueueToken(&external, token);
 			}			
 			else
 			{
-				if(strncmp(token, "-", 1) == 0)
-				{
-					if(!emptyTokenQueue(&internal))
-					{
-						flushInternalTokenFifo();
-						// insert the new token in the empty fifo
-						enqueueToken(&internal, token);
-					}
-					else
-						enqueueToken(&internal, token);
-				}
-				else
-					enqueueToken(&internal, token);
+				enqueueToken(&external, token);
 			}
 		}
-		else
-			flushInternalTokenFifo();
 	}
 	while (token != NULL);
 
@@ -244,7 +250,7 @@ static void tokenizeCmdNameArgs(char *commandName, char **commandArgs, char *inp
 		
 		commandArgs[count] = deqToken->token;
 		count++;
-		tokenFree(deqToken); //XXX free argument token struct and his internal pointer to token string
+		tokenFree(deqToken); 
 	}
 }
 
@@ -422,9 +428,9 @@ static void setTimeout(char *timeOut)
 
 static void setIP4RxCommand(char *ip4RxCmd)
 {
-	if(execRX4 == FALSE)
+	if(execRX4Called == FALSE)
 	{
-		execRX4 = TRUE;
+		execRX4Called = TRUE;
 		
 		char *IP4RxCmdName = NULL;
 		char **IP4RxCmdArgs = NULL;
@@ -440,9 +446,9 @@ static void setIP4RxCommand(char *ip4RxCmd)
 
 static void setIP6RxCommand(char *ip6RxCmd)
 {
-	if(execRX6 == FALSE)
+	if(execRX6Called == FALSE)
 	{
-		execRX6 = TRUE;
+		execRX6Called = TRUE;
 		
 		char *IP6RxCmdName = NULL;
 		char **IP6RxCmdArgs = NULL;
@@ -458,9 +464,9 @@ static void setIP6RxCommand(char *ip6RxCmd)
 
 static void setIP4DelCommand(char *ip4DelCmd)
 {
-	if(execDel4 == FALSE)
+	if(execDel4Called == FALSE)
 	{
-		execDel4 = TRUE;
+		execDel4Called = TRUE;
 		
 		char *IP4DelCmdName = NULL;
 		char **IP4DelCmdArgs = NULL;
@@ -476,9 +482,9 @@ static void setIP4DelCommand(char *ip4DelCmd)
 
 static void setIP6DelCommand(char *ip6DelCmd)
 {
-	if(execDel6 == FALSE)
+	if(execDel6Called == FALSE)
 	{
-		execDel6 = TRUE;
+		execDel6Called = TRUE;
 		
 		char *IP6DelCmdName = NULL;
 		char **IP6DelCmdArgs = NULL;
@@ -497,10 +503,9 @@ void parseCmdLine(int argc, char *argv[])
 {
 	opterr = 0;
 	int c = 0;
+	
 	if(argc == 1)
-	{
 		help();
-	}
 	else
 	{
 		while(1)

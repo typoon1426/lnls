@@ -31,10 +31,15 @@
 #define SYSLOG_WEIGHT 11
 #define FILELOG_WEIGHT 11
 #define STDOUT_WEIGHT 14
-#define HELP_WEIGHT 14
+#define HELP_WEIGHT 15
 #define DEBUG_WEIGHT 14
 #define MINRANGE 10
 #define MAXRANGE 15
 
 void parseCmdLine(int argc, char *argv[]);
+inline unsigned char execRX4Setted(void);
+inline unsigned char execRX6Setted(void);
+inline unsigned char execDel4Setted(void);
+inline unsigned char execDel6Setted(void);
+
 #endif

@@ -283,52 +283,44 @@ static void setSignalHandlers()
 
 inline void hookRx4(struct neighBourBlock *neighBour)
 {
-	execCmd(neighBour, RX, AF_INET);
+	if(execRX4Setted())
+		execCmd(neighBour, RX, AF_INET);
 }
 
 inline void hookRx6(struct neighBourBlock *neighBour)
 {
-	execCmd(neighBour, RX, AF_INET6);
+	if(execRX6Setted())
+		execCmd(neighBour, RX, AF_INET6);
 }
 
 inline void hookDel4(struct neighBourBlock *neighBour)
 {
-	execCmd(neighBour, DEL, AF_INET);
+	if(execDel4Setted())
+		execCmd(neighBour, DEL, AF_INET);
 }
 
 inline void hookDel6(struct neighBourBlock *neighBour)
 {
-	execCmd(neighBour, DEL, AF_INET6);
+	if(execDel6Setted())
+		execCmd(neighBour, DEL, AF_INET6);
 }
 
 int main(int argc, char *argv[])
 {
-	printf("DEBUG 1\n");
-	
 	// parse command line arguments
 	parseCmdLine(argc, argv);
 
-	printf("DEBUG 2\n");
-	
 	// signal handlers
 	setSignalHandlers();
 
-	printf("DEBUG 3\n");
-	
 	// mask SIGALRM 
 	mask();
-
-	printf("DEBUG 4\n");
 	
 	// init all structures
 	initStruct();
-
-	printf("DEBUG 5\n");
 	
 	// open socket and bind
 	socketBind();
-
-	printf("DEBUG 6\n");
 	
 	// unmask SIGALRM for start interval timer
 	if(getMode() != DEBUG)

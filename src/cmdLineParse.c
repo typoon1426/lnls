@@ -39,7 +39,7 @@
 #include "cmdLineParse.h"
 #include "exec.h"
 
-static struct argumentToken {
+struct argumentToken {
 	char *token;
 	int tokenLen;
 	
@@ -47,7 +47,7 @@ static struct argumentToken {
 	struct argumentToken *prev;
 };
 
-static struct tokenQueueHead {
+struct tokenQueueHead {
 	struct argumentToken *head;
 	
 	int tokenCount;
@@ -113,7 +113,7 @@ static void enqueueToken(struct tokenQueueHead *headQ, char *token)
 	}
 	
 	newToken->token = token;
-	newToken-next = newToken->prev = NULL;
+	newToken->next = newToken->prev = NULL;
 	newToken->tokenLen = strlen(token);
 
 	if(headQ->tokenCount == 0)
@@ -127,14 +127,14 @@ static void enqueueToken(struct tokenQueueHead *headQ, char *token)
 	}
 	
 	headQ->tokenCount++;
-	headQ->tokenSum += newToken->tokenLen;
+	headQ->tokenLenSum += newToken->tokenLen;
 }
 
 static struct argumentToken *dequeueToken(struct tokenQueueHead *headQ)
 {
 	struct argumentToken *deQueuedToken = NULL;
 	
-	if((headQ->tokenCount != 0)
+	if(headQ->tokenCount != 0)
 	{
 		deQueuedToken = headQ->head;
 		
@@ -143,7 +143,7 @@ static struct argumentToken *dequeueToken(struct tokenQueueHead *headQ)
 			headQ->head->prev = NULL;
 		
 		headQ->tokenCount--;
-		headQ->tokenSum -= deQueuedToken->tokenLen;
+		headQ->tokenLenSum -= deQueuedToken->tokenLen;
 	}
 	
 	return deQueuedToken;
@@ -170,7 +170,7 @@ static void flushInternalTokenFifo(void)
 
 	memset(argument, 0, (len+tokenCount)*sizeof(char));
 	
-	while(!tokenFifoEmpty(&internal))
+	while(!emptyTokenQueue(&internal))
 	{
 		struct argumentToken *deqToken = dequeueToken(&internal);
 		
@@ -208,11 +208,11 @@ static void tokenizeCmdNameArgs(char *commandName, char **commandArgs, char *inp
 			}			
 			else
 			{
-				if(token[0] == "-")
+				if(strncmp(token, "-", 1) == 0)
 				{
-					if(!tokenFifoEmpty(&internal))
+					if(!emptyTokenQueue(&internal))
 					{
-						flushInternalTokenFifo
+						flushInternalTokenFifo();
 						// insert the new token in the empty fifo
 						enqueueToken(&internal, token);
 					}
@@ -224,9 +224,7 @@ static void tokenizeCmdNameArgs(char *commandName, char **commandArgs, char *inp
 			}
 		}
 		else
-		{
-			flushInternalTokenFifo
-		}
+			flushInternalTokenFifo();
 	}
 	while (token != NULL);
 
@@ -240,7 +238,7 @@ static void tokenizeCmdNameArgs(char *commandName, char **commandArgs, char *inp
 	
 	int count = 0;
 	
-	while(!tokenFifoEmpty(&external))
+	while(!emptyTokenQueue(&external))
 	{
 		struct argumentToken *deqToken = dequeueToken(&external);
 		
@@ -429,9 +427,10 @@ static void setIP4RxCommand(char *ip4RxCmd)
 		execRX4 = TRUE;
 		
 		char *IP4RxCmdName = NULL;
-		char *IP4RxCmdArgs = NULL;
+		char **IP4RxCmdArgs = NULL;
 		
-		extractCmdNameArgs(IP4RxCmdName, IP4RxCmdArgs, ip4RxCmd, MAXSTRCMD_LEN);
+		tokenizeCmdNameArgs(IP4RxCmdName, IP4RxCmdArgs, ip4RxCmd);
+		//extractCmdNameArgs(IP4RxCmdName, IP4RxCmdArgs, ip4RxCmd, MAXSTRCMD_LEN);
 		
 		setExecIP4RxCmd(IP4RxCmdName, IP4RxCmdArgs);
 	}
@@ -446,9 +445,10 @@ static void setIP6RxCommand(char *ip6RxCmd)
 		execRX6 = TRUE;
 		
 		char *IP6RxCmdName = NULL;
-		char *IP6RxCmdArgs = NULL;
+		char **IP6RxCmdArgs = NULL;
 
-		extractCmdNameArgs(IP6RxCmdName, IP6RxCmdArgs, ip6RxCmd, MAXSTRCMD_LEN);
+		tokenizeCmdNameArgs(IP6RxCmdName, IP6RxCmdArgs, ip6RxCmd);
+		//extractCmdNameArgs(IP6RxCmdName, IP6RxCmdArgs, ip6RxCmd, MAXSTRCMD_LEN);
 		
 		setExecIP6RxCmd(IP6RxCmdName, IP6RxCmdArgs);
 	}
@@ -463,9 +463,10 @@ static void setIP4DelCommand(char *ip4DelCmd)
 		execDel4 = TRUE;
 		
 		char *IP4DelCmdName = NULL;
-		char *IP4DelCmdArgs = NULL;
+		char **IP4DelCmdArgs = NULL;
 		
-		extractCmdNameArgs(IP4DelCmdName, IP4DelCmdArgs, ip4DelCmd, MAXSTRCMD_LEN);
+		tokenizeCmdNameArgs(IP4DelCmdName, IP4DelCmdArgs, ip4DelCmd);
+		//extractCmdNameArgs(IP4DelCmdName, IP4DelCmdArgs, ip4DelCmd, MAXSTRCMD_LEN);
 
 		setExecIP4DelCmd(IP4DelCmdName, IP4DelCmdArgs);
 	}
@@ -480,9 +481,10 @@ static void setIP6DelCommand(char *ip6DelCmd)
 		execDel6 = TRUE;
 		
 		char *IP6DelCmdName = NULL;
-		char *IP6DelCmdArgs = NULL;
+		char **IP6DelCmdArgs = NULL;
 		
-		extractCmdNameArgs(IP6DelCmdName, IP6DelCmdArgs, ip6DelCmd, MAXSTRCMD_LEN);
+		tokenizeCmdNameArgs(IP6DelCmdName, IP6DelCmdArgs, ip6DelCmd);
+		//extractCmdNameArgs(IP6DelCmdName, IP6DelCmdArgs, ip6DelCmd, MAXSTRCMD_LEN);
 
 		setExecIP6DelCmd(IP6DelCmdName, IP6DelCmdArgs);
 	}

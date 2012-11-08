@@ -43,7 +43,7 @@ static char addressFamily[AF_LEN];
 static char L3Addr[L3_LEN];
 static char L2Addr[L2_LEN];
 static char ifName[IFACE_LEN];
-static char lastSeenTS[ASCII_TSTAMP_LEN]; // TODO DEFINIRE LUNGHEZZA E TIPO DEL TIMESTAMP
+static char lastSeenTS[ASCII_TSTAMP_LEN]; 
 
 static char *ip4RxCmdName = NULL;
 static char **ip4RxCmdArgs = NULL;
@@ -94,46 +94,41 @@ static void setEnvVars(struct neighBourBlock *neighBour)
 	}	
 }
 
-static inline void setCmd(char *cmdName, char **cmdArgs, unsigned char opCode, unsigned char AF)
-{
-	if(opCode == RX)
-	{
-		if(AF == AF_INET)
-		{
-			cmdName = ip4RxCmdName;
-			cmdArgs = ip4RxCmdArgs;
-		}
-		else
-		{
-			cmdName = ip6RxCmdName;
-			cmdArgs = ip6RxCmdArgs;
-		}
-	}
-	else if(opCode == DEL)
-	{
-		if(AF == AF_INET)
-		{
-			cmdName = ip4DelCmdName;
-			cmdArgs = ip4DelCmdArgs;
-		}
-		else
-		{
-			cmdName = ip6DelCmdName;
-			cmdArgs = ip6DelCmdArgs;
-		}
-	}
-}
-
 void execCmd(struct neighBourBlock *neighBour, unsigned char opCode, unsigned char AF)
 {
 	pid_t newPid = 0;
 	char *commandName = NULL;
 	char **commandArgs = NULL;
 	
-	setCmd(commandName, commandArgs, opCode, AF);
+	if(opCode == RX)
+	{
+		if(AF == AF_INET)
+		{
+			commandName = ip4RxCmdName;
+			commandArgs = ip4RxCmdArgs;
+		}
+		else
+		{
+			commandName = ip6RxCmdName;
+			commandArgs = ip6RxCmdArgs;
+		}
+	}
+	else if(opCode == DEL)
+	{
+		if(AF == AF_INET)
+		{
+			commandName = ip4DelCmdName;
+			commandArgs = ip4DelCmdArgs;
+		}
+		else
+		{
+			commandName = ip6DelCmdName;
+			commandArgs = ip6DelCmdArgs;
+		}
+	}
 
 	setEnvVars(neighBour);
-	
+
 	newPid = fork();
 	
 	if(newPid == 0)
@@ -144,7 +139,7 @@ void execCmd(struct neighBourBlock *neighBour, unsigned char opCode, unsigned ch
 		// unreachable point on success
 		if(ret == -1)
 		{
-			perror("Execve error");
+			perror("Execve error"); //TODO GESTIONE ERRORI ANCHE SUL FILE O SYSLOG SE È SETTATO COSÌ
 			exit(1);
 		}
 	}
@@ -179,7 +174,7 @@ void execCmd(struct neighBourBlock *neighBour, unsigned char opCode, unsigned ch
 					memset(errorStr, 0, 100);
 
 				
-					snprintf(errorStr, 100, "%s has returned %d.", commandName, retValue);				
+					snprintf(errorStr, 100, "The child process executing %s has returned %d.", commandName, retValue);				
 					logErrorStatus(errorStr);
 				}
 			}
@@ -188,7 +183,7 @@ void execCmd(struct neighBourBlock *neighBour, unsigned char opCode, unsigned ch
 				char errorStr[100];
 				memset(errorStr, 0, 100);
 
-				snprintf(errorStr, 100, "Error returning from command, %s", commandName);	
+				snprintf(errorStr, 100, "Error returning from child process executing command, %s", commandName);	
 				logErrorStatus(errorStr);
 			}
 		}

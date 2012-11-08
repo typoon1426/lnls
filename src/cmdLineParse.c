@@ -174,40 +174,7 @@ static inline void tokenFree(struct argumentToken *token)
 	free(token);
 }
 
-static void flushInternalTokenFifo(void)
-{
-	// Handling tokes in the fifo
-	int len = getTokenLenSum(&internal);
-	int tokenCount = getTokenCount(&internal);
-	int offset = 0;
-	char *argument = (char *) malloc((len+tokenCount)*sizeof(char));
-
-	if(argument == NULL)
-	{
-		perror("Malloc argument error:");
-		exit(1);
-	}
-
-	memset(argument, 0, (len+tokenCount)*sizeof(char));
-	
-	while(!emptyTokenQueue(&internal))
-	{
-		struct argumentToken *deqToken = dequeueToken(&internal);
-		
-		memcpy(argument+offset, deqToken->token, deqToken->tokenLen); // QUI NON DEVE COPIARE IL \0
-		memset(argument+offset+deqToken->tokenLen, 0x20, 1);
-		offset += deqToken->tokenLen+1;
-		
-		// free token pointer
-		free(deqToken->token);
-		// free token struct
-		tokenFree(deqToken); 
-	}
-
-	enqueueToken(&external, argument);
-}
-
-static void tokenizeCmdNameArgs(char *commandName, char **commandArgs, char *inputString)
+static void tokenizeCmdNameArgs(char **commandName, char ***commandArgs, char *inputString)
 {
 	char *token = NULL;
 	char *newSubToken = NULL;
@@ -223,7 +190,7 @@ static void tokenizeCmdNameArgs(char *commandName, char **commandArgs, char *inp
 		{
 			if(inputString != NULL)
 			{
-				commandName = token;
+				*commandName = token;
 				enqueueToken(&external, token);
 			}			
 			else
@@ -234,9 +201,9 @@ static void tokenizeCmdNameArgs(char *commandName, char **commandArgs, char *inp
 	}
 	while (token != NULL);
 
-	commandArgs = calloc(getTokenCount(&external)+1, sizeof(char *));
+	*commandArgs = calloc(getTokenCount(&external)+1, sizeof(char *));
 	
-	if(commandArgs == NULL)
+	if(*commandArgs == NULL)
 	{
 		perror("Calloc commandargs error:");
 		exit(1);
@@ -248,7 +215,7 @@ static void tokenizeCmdNameArgs(char *commandName, char **commandArgs, char *inp
 	{
 		struct argumentToken *deqToken = dequeueToken(&external);
 		
-		commandArgs[count] = deqToken->token;
+		*commandArgs[count] = deqToken->token;
 		count++;
 		tokenFree(deqToken); 
 	}
@@ -435,9 +402,8 @@ static void setIP4RxCommand(char *ip4RxCmd)
 		char *IP4RxCmdName = NULL;
 		char **IP4RxCmdArgs = NULL;
 		
-		tokenizeCmdNameArgs(IP4RxCmdName, IP4RxCmdArgs, ip4RxCmd);
-		//extractCmdNameArgs(IP4RxCmdName, IP4RxCmdArgs, ip4RxCmd, MAXSTRCMD_LEN);
-		
+		tokenizeCmdNameArgs(&IP4RxCmdName, &IP4RxCmdArgs, ip4RxCmd);
+
 		setExecIP4RxCmd(IP4RxCmdName, IP4RxCmdArgs);
 	}
 	else
@@ -453,8 +419,7 @@ static void setIP6RxCommand(char *ip6RxCmd)
 		char *IP6RxCmdName = NULL;
 		char **IP6RxCmdArgs = NULL;
 
-		tokenizeCmdNameArgs(IP6RxCmdName, IP6RxCmdArgs, ip6RxCmd);
-		//extractCmdNameArgs(IP6RxCmdName, IP6RxCmdArgs, ip6RxCmd, MAXSTRCMD_LEN);
+		tokenizeCmdNameArgs(&IP6RxCmdName, &IP6RxCmdArgs, ip6RxCmd);
 		
 		setExecIP6RxCmd(IP6RxCmdName, IP6RxCmdArgs);
 	}
@@ -471,8 +436,7 @@ static void setIP4DelCommand(char *ip4DelCmd)
 		char *IP4DelCmdName = NULL;
 		char **IP4DelCmdArgs = NULL;
 		
-		tokenizeCmdNameArgs(IP4DelCmdName, IP4DelCmdArgs, ip4DelCmd);
-		//extractCmdNameArgs(IP4DelCmdName, IP4DelCmdArgs, ip4DelCmd, MAXSTRCMD_LEN);
+		tokenizeCmdNameArgs(&IP4DelCmdName, &IP4DelCmdArgs, ip4DelCmd);
 
 		setExecIP4DelCmd(IP4DelCmdName, IP4DelCmdArgs);
 	}
@@ -489,8 +453,7 @@ static void setIP6DelCommand(char *ip6DelCmd)
 		char *IP6DelCmdName = NULL;
 		char **IP6DelCmdArgs = NULL;
 		
-		tokenizeCmdNameArgs(IP6DelCmdName, IP6DelCmdArgs, ip6DelCmd);
-		//extractCmdNameArgs(IP6DelCmdName, IP6DelCmdArgs, ip6DelCmd, MAXSTRCMD_LEN);
+		tokenizeCmdNameArgs(&IP6DelCmdName, &IP6DelCmdArgs, ip6DelCmd);
 
 		setExecIP6DelCmd(IP6DelCmdName, IP6DelCmdArgs);
 	}

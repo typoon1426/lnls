@@ -303,21 +303,33 @@ inline void hookDel6(struct neighBourBlock *neighBour)
 
 int main(int argc, char *argv[])
 {
+	printf("DEBUG 1\n");
+	
 	// parse command line arguments
 	parseCmdLine(argc, argv);
 
+	printf("DEBUG 2\n");
+	
 	// signal handlers
 	setSignalHandlers();
 
+	printf("DEBUG 3\n");
+	
 	// mask SIGALRM 
 	mask();
 
+	printf("DEBUG 4\n");
+	
 	// init all structures
 	initStruct();
 
+	printf("DEBUG 5\n");
+	
 	// open socket and bind
 	socketBind();
 
+	printf("DEBUG 6\n");
+	
 	// unmask SIGALRM for start interval timer
 	if(getMode() != DEBUG)
 		unMask();

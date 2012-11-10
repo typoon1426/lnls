@@ -139,14 +139,18 @@ void execCmd(struct neighBourBlock *neighBour, unsigned char opCode, unsigned ch
 		// unreachable point on success
 		if(ret == -1)
 		{
-			logError("Execve error:\0");
+			char errorStr[PRINTOUTBUF];
+			memset(errorStr, 0, PRINTOUTBUF);	
+			snprintf(errorStr, PRINTOUTBUF, "Error running command %s\0", commandName);
+
+			logError(errorStr);
 			exit(1);
 		}
 	}
 	else if(newPid < 0)
 	{
 		// handling error
-		logError("Fork error:\0");
+		logError("Fork error\0");
 		exit(1);
 	}
 	else if(newPid > 0)
@@ -158,7 +162,7 @@ void execCmd(struct neighBourBlock *neighBour, unsigned char opCode, unsigned ch
 		
 		if(retWait < 0)
 		{
-			logError("Waitpid error:\0");
+			logError("Waitpid error\0");
 			exit(1);
 		}
 		else
@@ -170,20 +174,20 @@ void execCmd(struct neighBourBlock *neighBour, unsigned char opCode, unsigned ch
 
 				if(retValue != 0)
 				{
-					char errorStr[100];
-					memset(errorStr, 0, 100);
+					char errorStr[PRINTOUTBUF];
+					memset(errorStr, 0, PRINTOUTBUF);
 
 				
-					snprintf(errorStr, 100, "The child process executing %s has returned %d.", commandName, retValue);				
+					snprintf(errorStr, PRINTOUTBUF, "The child process executing %s has returned %d.", commandName, retValue);				
 					logPrint(errorStr, NULL, TRUE);
 				}
 			}
 			else
 			{
-				char errorStr[100];
-				memset(errorStr, 0, 100);
+				char errorStr[PRINTOUTBUF];
+				memset(errorStr, 0, PRINTOUTBUF);
 
-				snprintf(errorStr, 100, "Error returning from child process executing command, %s", commandName);	
+				snprintf(errorStr, PRINTOUTBUF, "Error returning from child process executing command, %s", commandName);	
 				logPrint(errorStr, NULL, TRUE);
 			}
 		}

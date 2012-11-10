@@ -37,6 +37,7 @@
 #include <unistd.h>
 
 #include "nlSystem.h"
+#include "logging.h"
 
 static const char intString[] = "Interface :";
 static const char inetString[] = "IPv4 Address :";
@@ -163,8 +164,7 @@ void setFileLogStream(FILE *logStream)
 	// set stream line buffered
 	if(setvbuf(logFile, lineBuf, _IOLBF, LINEBUFLEN) != 0)
 	{
-		perror("setvbuf error:");
-		logError("setvbuf error:\0");
+		logError("setvbuf error\0");
 		closeLogFile();
 		exit(1);
 	}
@@ -181,7 +181,7 @@ void logError(char *errorString)
 	char errorBuf[PRINTOUTBUF];
 	memset(errorBuf, 0, PRINTOUTBUF);
 
-	ret = sprintf(errorBuf, "%s:", errorString);
+	ret = sprintf(errorBuf, "%s: ", errorString);
 
 	strerror_r(errno, errorBuf+ret, PRINTOUTBUF-ret);
 	
@@ -231,7 +231,7 @@ void logWrite(struct neighBourBlock *neigh)
 	neigh2Ascii(neigh, packetBuf, PRINTOUTBUF);
 	
 
-	logPrint(packetBuf, PRINTOUTBUF, timeStampBuf, ASCII_BUF, FALSE);
+	logPrint(packetBuf, timeStampBuf, FALSE);
 }
 
 void saveFileName(char *pidFileName)

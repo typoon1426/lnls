@@ -76,6 +76,8 @@ static const char usage[] = 	"Usage: lnls [OPTIONS]\n"
 				"  -Z, --exec-del6			Set a command to exec when a neighbour with IPv6 address has expired.\n";
 
 static const char programNameStarted[] = "lnls started";
+static const char programName[] = "lnls";
+
 static unsigned char daemonSet = 0, commandLineRange = 0, afCalled = FALSE, interfacesCalled = FALSE, subnetsCalled = FALSE, timeoutCalled = FALSE, execRX4Called = FALSE, execRX6Called = FALSE, execDel4Called = FALSE, execDel6Called = FALSE;
 
 inline unsigned char execRX4Setted(void)
@@ -568,23 +570,23 @@ void parseCmdLine(int argc, char *argv[])
 		{
 			if(daemon(0, 0) < 0)
 			{
-				logError("daemon syscall error:\0");
+				logError("daemon syscall error\0");
 				exit(1);
 			}
 			else
 			{
 				FILE *stream;
 
-				logPrint(programNameStarted, NULL, FALSE);
+				logPrint((char *) programNameStarted, NULL, FALSE);
 
 				// write in pidfile mypid
 				if((stream = fopen(getPidFileName(), "w")) == NULL) {
-					logError("pidfile file stream open failed:\0");
+					logError("pidfile file stream open failed\0");
 					exit(1);
 				}
 	
 				if(fprintf(stream, "%d\n", getpid()) <= 0) {
-					logError("pid fprintf failed:\0");
+					logError("pid fprintf failed\0");
 					exit(1);
 				}
 

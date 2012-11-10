@@ -29,7 +29,8 @@
 
 void debugPsrint(struct neighBourBlock *neigh);
 void logWrite(struct neighBourBlock *neigh);
-void logPrint(char *string, char *timeS, unsigned char error
+void logPrint(char *string, char *timeS, unsigned char error);
+void logError(char *errorString);
 void closeLogFile(void);
 void setFileLogStream(FILE *logStream);
 FILE *getFileLogStream(void);

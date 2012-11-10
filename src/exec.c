@@ -90,7 +90,7 @@ static void setEnvVars(struct neighBourBlock *neighBour)
 	else if(neighBour->addressFamily == AF_INET6)
 	{
 		memcpy(addressFamily, inet6, AF_LEN);
-		inet2Ascii(neighBour->inet6Addr, L3Addr+3, INET6LEN, L3_LEN-3);
+		inet62Ascii(neighBour->inet6Addr, L3Addr+3, INET6LEN, L3_LEN-3);
 	}	
 }
 

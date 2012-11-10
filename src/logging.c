@@ -72,7 +72,7 @@ void inet2Ascii(const unsigned char *inet, char *buf, int inetLen, int bufLen)
 
 	if(getnameinfo((struct sockaddr *) &afinet, sizeof(afinet), buf, bufLen, 0, 0, NI_NUMERICHOST) < 0)
 	{
-		perror("neigh2Ascii getnameinfo ipv4");
+		logError("inet2Ascii getnameinfo ipv4\0");
 		exit(1);
 	}
 }
@@ -87,7 +87,7 @@ void inet62Ascii(const unsigned char *inet6, char *buf, int inet6Len, int bufLen
 
 	if(getnameinfo((struct sockaddr *) &afinet6, sizeof(afinet6), buf, bufLen, 0, 0, NI_NUMERICHOST) < 0)
 	{
-		perror("neigh2Ascii getnameinfo ipv6");
+		logError("inet62Ascii getnameinfo ipv6\0");
 		exit(1);
 	}
 }
@@ -118,37 +118,9 @@ static void neigh2Ascii(struct neighBourBlock *neigh, char *printOutBuf, int out
 	w += snprintf(printOutBuf+w, outLen, "%s %s", etherAddrString, linkAddr);	
 }
 
-static void timeStamp(time_t *time, char *buf, int len)
+static inline void timeStamp(time_t *time, char *buf, int len)
 {
 	strftime(buf, len, timeFormat, localtime(time));
-}
-
-static void string2FdPrint(char *str, FILE *fd)
-{
-	char timeStampBuf[ASCII_BUF];
-	time_t tStamp = time(NULL);
-	
-	timeStamp(&tStamp, timeStampBuf, sizeof(timeStampBuf));
-	fprintf(fd, "[ %s ] %s\n", timeStampBuf, str);
-}
-
-static void str2FdPrint(struct neighBourBlock *neigh, FILE *fd)
-{
-	char str[PRINTOUTBUF];
-	char timeStampBuf[ASCII_BUF];
-
-	timeStamp(&(neigh->last_seen), timeStampBuf, sizeof(timeStampBuf));
-
-	neigh2Ascii(neigh, str, sizeof(str));
-	fprintf(fd, "[ %s ] %s\n", timeStampBuf, str);
-}
-
-static void sysLogPrint(struct neighBourBlock *neigh)
-{
-	char log[PRINTOUTBUF];
-
-	neigh2Ascii(neigh, log, sizeof(log));
-	syslog(LOG_INFO, log);
 }
 
 void closeLogFile(void)
@@ -172,7 +144,16 @@ inline unsigned char getMode(void)
 
 void debugPrint(struct neighBourBlock *neigh)
 {
-	str2FdPrint(neigh, stdout);
+	char timeStampBuf[ASCII_BUF];
+	char packetBuf[PRINTOUTBUF];
+	
+	memset(timeStampBuf, 0, ASCII_BUF);
+	memset(packetBuf, 0, PRINTOUTBUF);
+
+	timeStamp(&(neigh->last_seen), timeStampBuf, ASCII_BUF);
+	neigh2Ascii(neigh, packetBuf, PRINTOUTBUF);
+
+	fprintf(stdout, "[ %s ] %s\n", timeStampBuf, packetBuf);
 }
 
 void setFileLogStream(FILE *logStream)
@@ -183,6 +164,7 @@ void setFileLogStream(FILE *logStream)
 	if(setvbuf(logFile, lineBuf, _IOLBF, LINEBUFLEN) != 0)
 	{
 		perror("setvbuf error:");
+		logError("setvbuf error:\0");
 		closeLogFile();
 		exit(1);
 	}
@@ -193,40 +175,63 @@ FILE *getFileLogStream(void)
 	return logFile;
 }
 
-void logErrorStatus(char *string)
+void logError(char *errorString)
 {
+	int ret = 0;
+	char errorBuf[PRINTOUTBUF];
+	memset(errorBuf, 0, PRINTOUTBUF);
+
+	ret = sprintf(errorBuf, "%s:", errorString);
+
+	strerror_r(errno, errorBuf+ret, PRINTOUTBUF-ret);
+	
+	logPrint(errorBuf, NULL, TRUE);
+}
+
+void logPrint(char *string, char *timeS, unsigned char error)
+{
+	if(timeS == NULL)
+	{
+		char timeStampBuf[ASCII_BUF];
+		time_t tStamp = time(NULL);
+	
+		timeStamp(&tStamp, timeStampBuf, ASCII_BUF);
+
+		timeS = timeStampBuf;
+	}
+
 	switch (mode)
 	{
 		case STDOUT:
-			string2FdPrint(string, stdout);
+			fprintf(stdout, "[ %s ] %s\n", timeS, string);
 		break;
 
 		case FILEOUT:	
-			string2FdPrint(string, logFile);
+			fprintf(logFile, "[ %s ] %s\n", timeS, string);
 		break;
 
 		case SYSLOG:	
-			syslog(LOG_INFO, string);
+			if(error)
+				syslog(LOG_ERR, string);
+			else
+				syslog(LOG_INFO, string);
 		break;
 	}
 }
 
 void logWrite(struct neighBourBlock *neigh)
 {
-	switch (mode)
-	{
-		case STDOUT:
-			str2FdPrint(neigh, stdout);
-		break;
+	char timeStampBuf[ASCII_BUF];
+	char packetBuf[PRINTOUTBUF];
+	
+	memset(timeStampBuf, 0, ASCII_BUF);
+	memset(packetBuf, 0, PRINTOUTBUF);
 
-		case FILEOUT:	
-			str2FdPrint(neigh, logFile);
-		break;
+	timeStamp(&(neigh->last_seen), timeStampBuf, ASCII_BUF);
+	neigh2Ascii(neigh, packetBuf, PRINTOUTBUF);
+	
 
-		case SYSLOG:	
-			sysLogPrint(neigh);
-		break;
-	}
+	logPrint(packetBuf, PRINTOUTBUF, timeStampBuf, ASCII_BUF, FALSE);
 }
 
 void saveFileName(char *pidFileName)

@@ -106,6 +106,17 @@ static void initStruct(void)
 	msg.msg_namelen = sizeof(dest_addr);
 	msg.msg_iov = &iov;
 	msg.msg_iovlen = 1;
+
+	switch (getMode())
+	{
+		case FILEOUT:	
+					
+		break;
+
+		case SYSLOG:
+				
+		break;
+	}
 }
 
 // bind socket

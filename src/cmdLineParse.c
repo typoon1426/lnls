@@ -75,8 +75,7 @@ static const char usage[] = 	"Usage: lnls [OPTIONS]\n"
 				"  -z, --exec-del4			Set a command to exec when a neighbour with IPv4 address has expired.\n"
 				"  -Z, --exec-del6			Set a command to exec when a neighbour with IPv6 address has expired.\n";
 
-static const char programName[] = "lnls";
-static const char started[] = "started";
+static const char programNameStarted[] = "lnls started";
 static unsigned char daemonSet = 0, commandLineRange = 0, afCalled = FALSE, interfacesCalled = FALSE, subnetsCalled = FALSE, timeoutCalled = FALSE, execRX4Called = FALSE, execRX6Called = FALSE, execDel4Called = FALSE, execDel6Called = FALSE;
 
 inline unsigned char execRX4Setted(void)
@@ -569,37 +568,23 @@ void parseCmdLine(int argc, char *argv[])
 		{
 			if(daemon(0, 0) < 0)
 			{
-				perror("daemon :");
+				logError("daemon syscall error:\0");
 				exit(1);
 			}
 			else
 			{
 				FILE *stream;
 
-				// log lnls started
-				switch(getMode())
-				{
-					case STDOUT:
-						fprintf(stdout, "%s %s\n", programName, started);
-					break;
-
-					case FILEOUT:	
-						fprintf(getFileLogStream(), "%s %s\n", programName, started);
-					break;
-
-					case SYSLOG:	
-						syslog(LOG_INFO, "%s %s", programName, started);
-					break;
-				}
+				logPrint(programNameStarted, NULL, FALSE);
 
 				// write in pidfile mypid
 				if((stream = fopen(getPidFileName(), "w")) == NULL) {
-					syslog(LOG_INFO, "file stream open failed, %u", errno);
+					logError("pidfile file stream open failed:\0");
 					exit(1);
 				}
 	
 				if(fprintf(stream, "%d\n", getpid()) <= 0) {
-					syslog(LOG_INFO, "pid fprintf failed, %u", errno);
+					logError("pid fprintf failed:\0");
 					exit(1);
 				}
 

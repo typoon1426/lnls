@@ -29,6 +29,7 @@
 
 void debugPsrint(struct neighBourBlock *neigh);
 void logWrite(struct neighBourBlock *neigh);
+void logPrint(char *string, char *timeS, unsigned char error
 void closeLogFile(void);
 void setFileLogStream(FILE *logStream);
 FILE *getFileLogStream(void);
@@ -40,5 +41,4 @@ char *getPidFileName(void);
 void etherAddr2Str(const unsigned char *ether, char *buf, int srclen, int dstlen);
 void inet2Ascii(const unsigned char *inet, char *buf, int inetLen, int bufLen);
 void inet62Ascii(const unsigned char *inet6, char *buf, int inet6Len, int bufLen);
-void logErrorStatus(char *string);
 #endif

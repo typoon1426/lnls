@@ -1,5 +1,5 @@
-Linux Neighbour Logging System
-Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
+Linux Neighbour Logging System Version 0.2
+Copyright 2010,2012 Michele Cucchi <cucchi@cs.unibo.it>
 developed inside the "VirtualSquare" project www.virtualsquare.org
 
 Linux Neighbour Logging System is a tool designed to log the adding of new entries to kernel neighbour table, 
@@ -11,13 +11,18 @@ To build read INSTALL file.
 
 Command line parameter
 
-"-h or --help"  				Display the help and exit
-"-d or --daemonize"     			Run on background. Optional argument, not valid with debug, help and stdout.
-"-D or --debug          			Print all packet log on standard output, without timing handling. Not valid with other options.
-"-O or --stdout"        			Print all packet log on standard output, not valid with: daemonize, debug, filelog and syslog.
-"-s or --syslog"        			Print all packet log on syslog, not valid with: debug, stdout and filelog.
-"-F or --filelog filename"     			Print all packet log on logfile, not valid with: debug, stdout and syslog.
-"-A or --addrfamily inet|inet6"			Force to log only packets of address family selected.
-"-I or --interfaces int1,int2,.."   		Force to log only packets from interfaces selected.
-"-S or --subnets sub/mask,sub/mask1,.." 	Force to log only packets of subnets selected.
-
+"  -h, --help                 		Display this help and exit."
+"  -d, --daemonize            		Run on background. Optional argument, not valid with debug, help and stdout."
+"  -p, --pidfile filename       	Write the pid of lnls in the file named \"filename\", valid only with daemonize."
+"  -D, --debug                		Print all packet log on standard output, without timing handling. Not valid with other options." 
+"  -O, --stdout               		Print all packet log on standard output, not valid with: daemonize, debug, filelog and syslog."
+"  -s, --syslog               		Print all packet log on syslog, not valid with: debug, stdout and filelog."
+"  -F, --filelog filename     		Print all packet log on logfile, not valid with: debug, stdout and syslog."
+"  -A, --addrfamily inet|inet6		Force to log only packets of address family selected."
+"  -I, --interfaces int1,int2,..   	Force to log only packets from interfaces selected."
+"  -S, --subnets sub/mask,sub/mask1,.. 	Force to log only packets of subnets selected."
+"  -T, --timeout 			Set hash table flushing timeout, default is 360 seconds, min timeout is 1 second and max timeout is 3600 seconds."
+"  -x, --exec-rx4			Set a command to exec when receiving a neighbour with IPv4 address."
+"  -X, --exec-rx6			Set a command to exec when receiving a neighbour with IPv6 address."
+"  -z, --exec-del4			Set a command to exec when a neighbour with IPv4 address has expired."
+"  -Z, --exec-del6			Set a command to exec when a neighbour with IPv6 address has expired.";

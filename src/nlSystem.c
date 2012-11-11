@@ -1,11 +1,11 @@
-/*   Linux Neighbour logging system Version 0.1
+/*   Linux Neighbour logging system Version 0.2
  *   developed as part of VirtualSquare project
  *   
  *   Copyright 2010,2012 Michele Cucchi <cucchi@cs.unibo.it>
  *   
  *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License, version 2, as
- *   published by the Free Software Foundation.
+ *   it under the terms of the GNU General Public License, version 2 or 
+ *   (at your opinion) any later version, as published by the Free Software Foundation.
  *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -73,7 +73,7 @@ static void cleanExit(void)
 				closeLogFile();
 			}
 			else
-				syslog(LOG_INFO, "Errore unlink file, impossibile cancellare");
+				syslog(LOG_ERR, "Errore unlink file, impossibile cancellare");
 		}
 	}
 
@@ -94,7 +94,7 @@ static void initStruct(void)
 
 	if(nlMsg == NULL)
 	{
-		perror("Malloc");
+		logError("Malloc initstruct\0");
 		exit(1);
 	}
 	memset(nlMsg, 0, NLMSG_SPACE(BUFLENGTH));
@@ -126,13 +126,13 @@ static void socketBind(void)
  
 	if(fd < 0)
 	{
-		perror("Socket");
+		logError("Socket NETLINK\0");
 		exit(1);
 	}
 
 	if(bind(fd, (struct sockaddr*) &src_addr, sizeof(src_addr)) < 0)
 	{
-		perror("Bind");
+		logError("Bind\0");
 		exit(1);
 	}
 }
@@ -191,7 +191,7 @@ static void mainLoop(void)
 
 		if((ret < 0) && (errno != EINTR))
 		{
-			perror("Recvmsg");
+			logError("Recvmsg error\0");
 			exit(1);
 		}
 		else if(ret >= 0)
@@ -274,7 +274,7 @@ static void setSignalHandlers()
 		{
 			if(sigaction(signals[i], &actionDefault, NULL) < 0)
 			{
-				perror("sigaction:");
+				logError("sigaction\0");
 				exit(1);
 			}
 		}
@@ -282,7 +282,7 @@ static void setSignalHandlers()
 		{
 			if(sigaction(signals[i], &actionIgnore, NULL) < 0)
 			{
-				perror("sigaction:");
+				logError("sigaction\0");
 				exit(1);
 			}
 		}

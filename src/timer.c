@@ -1,11 +1,11 @@
-/*   Linux Neighbour logging system Version 0.1
+/*   Linux Neighbour logging system Version 0.2
  *   developed as part of VirtualSquare project
  *   
- *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
+ *   Copyright 2010,2012 Michele Cucchi <cucchi@cs.unibo.it>
  *   
  *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License, version 2, as
- *   published by the Free Software Foundation.
+ *   it under the terms of the GNU General Public License, version 2 or 
+ *   (at your opinion) any later version, as published by the Free Software Foundation.
  *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -36,7 +36,7 @@ inline void unMask(void)
 	
 	if (sigprocmask(SIG_SETMASK,&oldState,NULL) < 0)
 	{
-		perror("sigprocmask:");
+		logError("sigprocmask\0");
 		exit(1);
 	}
 }
@@ -45,7 +45,7 @@ inline void mask(void)
 {
 	if (sigprocmask(SIG_BLOCK,&maskedState,&oldState) < 0)
 	{
-		perror("sigprocmask:");
+		logError("sigprocmask\0");
 		exit(1);
 	}
 }
@@ -66,7 +66,7 @@ void intervalTimerStart(void)
 	// set sign handler
 	if(sigaction(SIGALRM, &actionAlarm, NULL) < 0)
 	{
-		perror("sigaction:");
+		logError("sigaction\0");
 		exit(1);
 	}
 
@@ -78,7 +78,7 @@ void intervalTimerStart(void)
 	// set interval timer
 	if(setitimer(ITIMER_REAL, &intervalTimer, NULL) < 0)
 	{
-		perror("setitimer:");
+		logError("setitimer\0");
 		exit(1);	
 	}
 }

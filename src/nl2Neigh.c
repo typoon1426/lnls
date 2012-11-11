@@ -1,11 +1,11 @@
-/*   Linux Neighbour logging system Version 0.1
+/*   Linux Neighbour logging system Version 0.2
  *   developed as part of VirtualSquare project
  *   
- *   Copyright 2010 Michele Cucchi <cucchi@cs.unibo.it>
+ *   Copyright 2010,2012 Michele Cucchi <cucchi@cs.unibo.it>
  *   
  *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License, version 2, as
- *   published by the Free Software Foundation.
+ *   it under the terms of the GNU General Public License, version 2 or 
+ *   (at your opinion) any later version, as published by the Free Software Foundation.
  *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -67,7 +67,7 @@ static inline struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr)
 
 	if(if_indextoname(neighMsg->ndm_ifindex, newNeigh->if_name) == NULL)
 	{
-		perror("if_index-toname");
+		logError("if_index-toname\0");
 		exit(1);
 	}
 

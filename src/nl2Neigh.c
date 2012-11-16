@@ -34,6 +34,7 @@
 #include <time.h>
 
 #include "nlSystem.h"
+#include "crc16.h"
 
 static inline struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr)
 {
@@ -55,7 +56,7 @@ static inline struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr)
 	newNeigh = malloc(sizeof(struct neighBourBlock));
 	if(newNeigh == NULL)
 	{
-		perror("malloc");
+		logError("newneigh malloc\0");
 		exit(1);
 	}
 
@@ -79,6 +80,9 @@ static inline struct neighBourBlock *packetConverter(struct nlmsghdr *nlMsgHdr)
 	
 	// set link local addr
 	memcpy(newNeigh->etherAddr, (unsigned char *) RTA_DATA(linkAddr), ETH_ALEN);
+
+	// set ethernet address crc16
+	newNeigh->etherCRC16 = crc16(0, newNeigh->etherAddr, ETH_ALEN);
 
 	// set last seen time_t struct 
 	newNeigh->last_seen = time(NULL);

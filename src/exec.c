@@ -35,12 +35,14 @@ static const char inet[] = "AF=INET\0";
 static const char inet6[] = "AF=INET6\0";
 static const char l3[] = "L3=";
 static const char l2[] = "L2=";
+static const char l2CRC[] = "L2CRC16=";
 static const char iface[] = "IFACE="; 
 static const char tstamp[] = "TSTAMP=";
 
-static char *envVars[6];
+static char *envVars[7];
 static char addressFamily[AF_LEN];
 static char L3Addr[L3_LEN];
+static char L2CRC[CRC16ASCII_LEN];
 static char L2Addr[L2_LEN];
 static char ifName[IFACE_LEN];
 static char lastSeenTS[ASCII_TSTAMP_LEN]; 
@@ -63,7 +65,8 @@ static void setEnvVars(struct neighBourBlock *neighBour)
 	envVars[2] = L2Addr;
 	envVars[3] = ifName;
 	envVars[4] = lastSeenTS;
-	envVars[5] = NULL;
+	envVars[5] = L2CRC
+	envVars[6] = NULL;
 
 	// timestamp
 	snprintf(lastSeenTS, ASCII_TSTAMP_LEN, "%s%lld", tstamp, (long long int) neighBour->last_seen);
@@ -77,11 +80,16 @@ static void setEnvVars(struct neighBourBlock *neighBour)
 	memcpy(L2Addr, l2, 3);
 	L2Addr[L2_LEN-1] = 0;
 	etherAddr2Str(neighBour->etherAddr, L2Addr+3, ETH_ALEN, L2_LEN-3);
-	
-	// level 3 address
+
+	// level 2 crc16
+	memcpy(L2CRC, l2CRC, 8);
+	snprintf(L2CRC, CRC16ASCII_LEN-8, "%hu", neighBour->etherCRC16);
+	L2CRC[CRC16ASCII_LEN-1] = 0;
+
+	// level 3 address 
 	memcpy(L3Addr, l3, 3);
 	L3Addr[L3_LEN-1] = 0;
-		
+
 	if(neighBour->addressFamily == AF_INET)
 	{
 		memcpy(addressFamily, inet, AF_LEN-1);

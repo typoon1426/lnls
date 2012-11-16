@@ -32,6 +32,7 @@
 #define AF_LEN 10
 #define L3_LEN 44
 #define L2_LEN 22
+#define CRC16ASCII_LEN 14
 #define IFACE_LEN 18
 #define ASCII_TSTAMP_LEN 28
 

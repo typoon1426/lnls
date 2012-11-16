@@ -62,6 +62,8 @@ struct neighBourBlock {
 	};
 	// local link address, only ethernet is supported
 	unsigned char etherAddr[ETH_ALEN];
+	// local link address crc16
+	unsigned short etherCRC16;
 
 	// interface index and name
 	unsigned int if_index;

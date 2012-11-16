@@ -65,7 +65,7 @@ static void setEnvVars(struct neighBourBlock *neighBour)
 	envVars[2] = L2Addr;
 	envVars[3] = ifName;
 	envVars[4] = lastSeenTS;
-	envVars[5] = L2CRC
+	envVars[5] = L2CRC;
 	envVars[6] = NULL;
 
 	// timestamp
@@ -83,7 +83,7 @@ static void setEnvVars(struct neighBourBlock *neighBour)
 
 	// level 2 crc16
 	memcpy(L2CRC, l2CRC, 8);
-	snprintf(L2CRC, CRC16ASCII_LEN-8, "%hu", neighBour->etherCRC16);
+	snprintf(L2CRC+8, CRC16ASCII_LEN-8, "%hu", neighBour->etherCRC16);
 	L2CRC[CRC16ASCII_LEN-1] = 0;
 
 	// level 3 address 

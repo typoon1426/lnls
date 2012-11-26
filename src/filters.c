@@ -196,9 +196,7 @@ int filter(struct neighBourBlock *neighBour)
 	switch(filtersBitMap)
 	{
 		case 1:
-		{
-			ret_val = verifyAF(neighBour->addressFamily);
-		}		
+			ret_val = verifyAF(neighBour->addressFamily);	
 		break;
 
 		case 2:

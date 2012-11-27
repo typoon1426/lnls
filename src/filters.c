@@ -250,34 +250,36 @@ static void nBit2Mask(unsigned char *mask, unsigned int nBit, unsigned int len)
 	unsigned int nRemainedBitSet = nBit%8;
 	unsigned int i = 0;
 
+	//printf("DEBUG PARTE INTERA %u\n", nByteSet);
+	//printf("DEBUG  resto %u\n", nRemainedBitSet);
 	// dirty evil	
 	if(nByteSet > len)
 		nByteSet = len;
 
-	if(nByteSet > 0)
-	{
+	/*if(nByteSet > 0)
+	{*/
 		for(i=0;i<nByteSet;i++)
 			*(mask + i) |= 0xFF;
 
 		if(nRemainedBitSet != 0)
 		{
 			unsigned int j = i;
-			unsigned char bitMask = 0x01;
+			unsigned char bitMask = 0x80;
 
 			for(i=0;i<nRemainedBitSet;i++)
-				*(mask + j) |= (bitMask << i);
+				*(mask + j) |= (bitMask >> i);
 		}
-	}
+	/*}
 	else
 	{
 		if(nRemainedBitSet != 0)
 		{
-			unsigned char bitMask = 0x01;
+			unsigned char bitMask = 0x80;
 
 			for(i=0;i<nRemainedBitSet;i++)
-				*(mask + i) |= (bitMask << i);
+				*(mask + i) |= (bitMask >> i);
 		}
-	}
+	}*/
 }
 
 int filterAddSubnet(char *subNet)
@@ -332,12 +334,14 @@ int filterAddSubnet(char *subNet)
 		{
 			len = INETLEN;
 			new4 = malloc(sizeof(struct subNet4));
+			memset(new4, 0, sizeof(struct subNet4));
 			memcpy(new4->inetSubnet, &(((struct sockaddr_in *) tmp->ai_addr)->sin_addr.s_addr), INETLEN);
 		}		
 		else if(tmp->ai_addrlen == sizeof(struct sockaddr_in6))
 		{
 			len = INET6LEN;
 			new6 = malloc(sizeof(struct subNet6));
+			memset(new6, 0, sizeof(struct subNet6));
 			memcpy(new6->inet6Subnet, &(((struct sockaddr_in6 *) tmp->ai_addr)->sin6_addr.s6_addr), INET6LEN);
 		}	
 	}
@@ -371,6 +375,8 @@ int filterAddSubnet(char *subNet)
 
 			new4->nMaskBitNumber = subnetMaskBitNumber;
 			nBit2Mask(new4->inetMask, subnetMaskBitNumber, INETLEN);
+			//printf("DEBUG bitmask %u\n", subnetMaskBitNumber);
+			//printf("DEBUG netmask %u\n", *((unsigned int *) new4->inetMask));
 		}
 		break;
 

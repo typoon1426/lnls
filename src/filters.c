@@ -250,8 +250,6 @@ static void nBit2Mask(unsigned char *mask, unsigned int nBit, unsigned int len)
 	unsigned int nRemainedBitSet = nBit%8;
 	unsigned int i = 0;
 
-	//printf("DEBUG PARTE INTERA %u\n", nByteSet);
-	//printf("DEBUG  resto %u\n", nRemainedBitSet);
 	// dirty evil	
 	if(nByteSet > len)
 		nByteSet = len;
@@ -375,8 +373,6 @@ int filterAddSubnet(char *subNet)
 
 			new4->nMaskBitNumber = subnetMaskBitNumber;
 			nBit2Mask(new4->inetMask, subnetMaskBitNumber, INETLEN);
-			//printf("DEBUG bitmask %u\n", subnetMaskBitNumber);
-			//printf("DEBUG netmask %u\n", *((unsigned int *) new4->inetMask));
 		}
 		break;
 

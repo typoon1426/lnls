@@ -190,6 +190,7 @@ void logError(char *errorString)
 
 void logPrint(char *string, char *timeS, unsigned char error)
 {
+	
 	if(timeS == NULL)
 	{
 		char timeStampBuf[ASCII_BUF];
@@ -230,7 +231,6 @@ void logWrite(struct neighBourBlock *neigh)
 	timeStamp(&(neigh->last_seen), timeStampBuf, ASCII_BUF);
 	neigh2Ascii(neigh, packetBuf, PRINTOUTBUF);
 	
-
 	logPrint(packetBuf, timeStampBuf, FALSE);
 }
 

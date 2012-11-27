@@ -36,7 +36,7 @@
 #define	INET6LEN 16
 #define ETH_ALEN 6
 #define ASCII_BUF 50
-#define PRINTOUTBUF 100
+#define PRINTOUTBUF 256
 #define STDOUTPUT 1
 #define LOG 1
 #define NOLOG 0

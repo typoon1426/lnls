@@ -49,7 +49,8 @@ struct argumentToken {
 
 struct tokenQueueHead {
 	struct argumentToken *head;
-	
+	struct argumentToken *tail;
+
 	int tokenCount;
 	int tokenLenSum;
 };
@@ -61,7 +62,7 @@ static const char usage[] = 	"Usage: lnls [OPTIONS]\n"
 				"Runs Neighbour Logging System.\n"
 				"  -h, --help                 		Display this help and exit.\n"
 				"  -d, --daemonize            		Run on background. Optional argument, not valid with debug, help and stdout.\n"
-				"  -p, --pidfile filename       		Write the pid of lnls in the file named \"filename\", valid only with daemonize.\n"
+				"  -p, --pidfile filename       		Write the pid of lnls in the file named \"filename\", mandatory and usable only with daemonize.\n"
 				"  -D, --debug                		Print all packet log on standard output, without timing handling. Not valid with other options.\n" 
 				"  -O, --stdout               		Print all packet log on standard output, not valid with: daemonize, debug, filelog and syslog.\n"
 				"  -s, --syslog               		Print all packet log on syslog, not valid with: debug, stdout and filelog.\n"
@@ -133,18 +134,20 @@ static void enqueueToken(struct tokenQueueHead *headQ, char *token)
 		exit(1);
 	}
 	
+	memset(newToken, 0, sizeof(struct argumentToken));
+
 	newToken->token = token;
 	newToken->next = newToken->prev = NULL;
 	newToken->tokenLen = strlen(token);
 
 	if(headQ->tokenCount == 0)
-	{
-		headQ->head = newToken;
-	}
+		headQ->head = headQ->tail = newToken;
 	else
 	{
-		headQ->head->next = newToken;
-		newToken->prev = headQ->head;
+		
+		headQ->tail->next = newToken;
+		newToken->prev = headQ->tail;
+		headQ->tail = newToken;
 	}
 	
 	headQ->tokenCount++;
@@ -154,14 +157,16 @@ static void enqueueToken(struct tokenQueueHead *headQ, char *token)
 static struct argumentToken *dequeueToken(struct tokenQueueHead *headQ)
 {
 	struct argumentToken *deQueuedToken = NULL;
-	
+
 	if(headQ->tokenCount != 0)
 	{
 		deQueuedToken = headQ->head;
-		
 		headQ->head = deQueuedToken->next;
+
 		if(headQ->head != NULL)
 			headQ->head->prev = NULL;
+		else
+			headQ->tail = headQ->head;
 		
 		headQ->tokenCount--;
 		headQ->tokenLenSum -= deQueuedToken->tokenLen;
@@ -195,28 +200,26 @@ static void tokenizeCmdNameArgs(char **commandName, char ***commandArgs, char *i
 				enqueueToken(&external, token);
 			}			
 			else
-			{
 				enqueueToken(&external, token);
-			}
 		}
 	}
 	while (token != NULL);
 
-	*commandArgs = calloc(getTokenCount(&external)+1, sizeof(char *));
+	int count = 0;
 	
+	*commandArgs = calloc(getTokenCount(&external)+1, sizeof(char *));
+
 	if(*commandArgs == NULL)
 	{
 		perror("Calloc commandargs error:");
 		exit(1);
 	}
-	
-	int count = 0;
-	
+
 	while(!emptyTokenQueue(&external))
 	{
 		struct argumentToken *deqToken = dequeueToken(&external);
-		
-		*commandArgs[count] = deqToken->token;
+	
+		(*commandArgs)[count] = deqToken->token;
 		count++;
 		tokenFree(deqToken); 
 	}
@@ -404,7 +407,6 @@ static void setIP4RxCommand(char *ip4RxCmd)
 		char **IP4RxCmdArgs = NULL;
 		
 		tokenizeCmdNameArgs(&IP4RxCmdName, &IP4RxCmdArgs, ip4RxCmd);
-
 		setExecIP4RxCmd(IP4RxCmdName, IP4RxCmdArgs);
 	}
 	else
@@ -568,29 +570,39 @@ void parseCmdLine(int argc, char *argv[])
 	{
 		if(daemonSet == 1)
 		{
-			if(daemon(0, 0) < 0)
+			char* pidFileName = getPidFileName();
+
+			if(strlen(pidFileName) != 0)
 			{
-				logError("daemon syscall error\0");
-				exit(1);
+				if(daemon(0, 0) < 0)
+				{
+					perror("daemon syscall error:");
+					exit(1);
+				}
+				else
+				{
+					FILE *stream;
+				
+					logPrint((char *) programNameStarted, NULL, FALSE);
+
+					// write in pidfile mypid
+					if((stream = fopen(pidFileName, "w")) == NULL) {
+						logError("pidfile file stream open failed\0");
+						exit(1);
+					}
+
+					if(fprintf(stream, "%d\n", getpid()) <= 0) {
+						logError("pid fprintf failed\0");
+						exit(1);
+					}
+
+					fclose(stream);
+				}
 			}
 			else
 			{
-				FILE *stream;
-
-				logPrint((char *) programNameStarted, NULL, FALSE);
-
-				// write in pidfile mypid
-				if((stream = fopen(getPidFileName(), "w")) == NULL) {
-					logError("pidfile file stream open failed\0");
-					exit(1);
-				}
-	
-				if(fprintf(stream, "%d\n", getpid()) <= 0) {
-					logError("pid fprintf failed\0");
-					exit(1);
-				}
-
-				fclose(stream);
+				printUsage();
+				exit(0);
 			}
 		}
 	}

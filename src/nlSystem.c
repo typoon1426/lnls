@@ -85,6 +85,8 @@ static void initStruct(void)
 {
 	memset(&src_addr, 0, sizeof(src_addr));
  	memset(&dest_addr, 0, sizeof(dest_addr));
+	memset(&msg, 0, sizeof(msg));
+	memset(&iov, 0, sizeof(iov));
 
 	src_addr.nl_family = AF_NETLINK;
  	src_addr.nl_pid = getpid(); // get my pid  

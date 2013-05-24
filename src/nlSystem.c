@@ -46,8 +46,8 @@
 #include "exec.h"
 
 static struct sockaddr_nl src_addr, dest_addr;
-static struct iovec iov;
-static struct msghdr msg;
+static struct iovec rcvIov, sndIov;
+static struct msghdr rcvMsg, sndMsg;
 static struct nlmsghdr *nlMsg;
 static int fd; 
 
@@ -83,10 +83,13 @@ static void cleanExit(void)
 // init structures
 static void initStruct(void)
 {
+	// reset structures
 	memset(&src_addr, 0, sizeof(src_addr));
  	memset(&dest_addr, 0, sizeof(dest_addr));
-	memset(&msg, 0, sizeof(msg));
-	memset(&iov, 0, sizeof(iov));
+	memset(&rcvMsg, 0, sizeof(rcvMsg));
+	memset(&sndMsg, 0, sizeof(sndMsg));
+	memset(&rcvIov, 0, sizeof(rcvIov));
+	memset(&sndIov, 0, sizeof(sndIov));
 
 	src_addr.nl_family = AF_NETLINK;
  	src_addr.nl_pid = getpid(); // get my pid  
@@ -101,24 +104,14 @@ static void initStruct(void)
 	}
 	memset(nlMsg, 0, NLMSG_SPACE(BUFLENGTH));
 
-	iov.iov_base = (void *) nlMsg;
- 	iov.iov_len = NLMSG_SPACE(BUFLENGTH);
+	rcvIov.iov_base = (void *) nlMsg;
+ 	rcvIov.iov_len = NLMSG_SPACE(BUFLENGTH);
 
-	msg.msg_name = (void *) &dest_addr;
-	msg.msg_namelen = sizeof(dest_addr);
-	msg.msg_iov = &iov;
-	msg.msg_iovlen = 1;
+	rcvMsg.msg_name = (void *) &dest_addr;
+	rcvMsg.msg_namelen = sizeof(dest_addr);
+	rcvMsg.msg_iov = &rcvIov;
+	rcvMsg.msg_iovlen = 1;
 
-	switch (getMode())
-	{
-		case FILEOUT:	
-					
-		break;
-
-		case SYSLOG:
-				
-		break;
-	}
 }
 
 // bind socket
@@ -183,15 +176,40 @@ static void pktSave(struct neighBourBlock *neighBour)
 	}
 }
 
+// send request with NLM_F_DUMP flag to netlink socket
+static void netLinkReSync(void)
+{
+	int ret = 0;
+
+	do
+	{
+		ret = sendmsg(fd, );
+	} while ();
+}
+
+static void nlDebug(struct nlmsghdr *nlMsg)
+{
+	printf("Lunghezza pacchetto: %d\n", nlMsg->nlMsg_len);
+	printf("Tipo Pacchetto: %d\n", nlMsg->nlMsg_type);
+	printf("Flags Pacchetto: %d\n", nlMsg->nlMsg_flags);
+	printf("SeqN Pacchetto: %d\n", nlMsg->nlMsg_seq);
+	printf("Pid src Pacchetto: %d\n", nlMsg->nlMsg_pid);
+}
+
 static void mainLoop(void)
 {
 	int ret;
 
 	while(1)
 	{
-		ret = recvmsg(fd, &msg, 0);
+		ret = recvmsg(fd, &rcvMsg, 0);
 
-		if((ret < 0) && (errno != EINTR))
+		if((ret < 0) && (errno == ENOBUFS))
+		{
+			// Send a NLM_F_DUMP request to resync data flow
+			//netLinkReSync();
+		}
+		else if((ret < 0) && (errno != EINTR))
 		{
 			logError("Recvmsg error\0");
 			exit(1);
@@ -201,6 +219,9 @@ static void mainLoop(void)
 			// check packet integrity
 			if(packetTest(nlMsg, ret))
 			{
+				// TODO PUNTO DI CONTROLLO PACCHETTI NETLINK
+				nlDebug(nlMsg);
+
 				struct neighBourBlock *neighBour = parseNlPacket(nlMsg);
 				
 				if(neighBour != NULL)

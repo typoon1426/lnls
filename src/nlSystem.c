@@ -45,10 +45,11 @@
 #include "filters.h"
 #include "exec.h"
 
-static struct sockaddr_nl src_addr, dest_addr;
+static struct sockaddr_nl src_addr, dest_addr, toKern_addr;
 static struct iovec rcvIov, sndIov;
 static struct msghdr rcvMsg, sndMsg;
-static struct nlmsghdr *nlMsg;
+static struct nlmsghdr *rcvNlMsg;
+static struct nlmsghdr sndNlMsg;
 static int fd; 
 
 // Close all file handlers and remove pidfile
@@ -86,25 +87,34 @@ static void initStruct(void)
 	// reset structures
 	memset(&src_addr, 0, sizeof(src_addr));
  	memset(&dest_addr, 0, sizeof(dest_addr));
+	memset(&toKern_addr, 0, sizeof(toKern_addr));
 	memset(&rcvMsg, 0, sizeof(rcvMsg));
 	memset(&sndMsg, 0, sizeof(sndMsg));
 	memset(&rcvIov, 0, sizeof(rcvIov));
 	memset(&sndIov, 0, sizeof(sndIov));
+	memset(&sndNlMsg, 0, sizeof(sndNlMsg));
 
 	src_addr.nl_family = AF_NETLINK;
  	src_addr.nl_pid = getpid(); // get my pid  
 	src_addr.nl_groups = RTMGRP_NEIGH; // set netlink, route protocol, neighbour multicast group
 
-	nlMsg = (struct nlmsghdr *) malloc(NLMSG_SPACE(BUFLENGTH));
+	toKern_addr.nl_family = AF_NETLINK;
+	toKern_addr.nl_pid = 0;
+	toKern_addr.nl_groups = 0;
 
-	if(nlMsg == NULL)
+	rcvNlMsg = (struct nlmsghdr *) malloc(NLMSG_SPACE(BUFLENGTH));
+	
+
+	if(rcvNlMsg == NULL)
 	{
 		logError("Malloc initstruct\0");
 		exit(1);
 	}
-	memset(nlMsg, 0, NLMSG_SPACE(BUFLENGTH));
 
-	rcvIov.iov_base = (void *) nlMsg;
+	
+	memset(rcvNlMsg, 0, NLMSG_SPACE(BUFLENGTH));
+	
+	rcvIov.iov_base = (void *) rcvNlMsg;
  	rcvIov.iov_len = NLMSG_SPACE(BUFLENGTH);
 
 	rcvMsg.msg_name = (void *) &dest_addr;
@@ -112,6 +122,19 @@ static void initStruct(void)
 	rcvMsg.msg_iov = &rcvIov;
 	rcvMsg.msg_iovlen = 1;
 
+	sndNlMsg.nlmsg_len = sizeof(sndNlMsg);
+	sndNlMsg.nlmsg_type = 0;
+	sndNlMsg.nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
+	sndNlMsg.nlmsg_seq = 0;
+	sndNlMsg.nlmsg_pid = getpid();
+
+	sndIov.iov_base = (void *) &sndNlMsg;
+ 	sndIov.iov_len = sizeof(sndNlMsg);
+
+	sndMsg.msg_name = (void *) &toKern_addr;
+	sndMsg.msg_namelen = sizeof(toKern_addr);
+	sndMsg.msg_iov = &sndIov;
+	sndMsg.msg_iovlen = 1;
 }
 
 // bind socket
@@ -180,20 +203,37 @@ static void pktSave(struct neighBourBlock *neighBour)
 static void netLinkReSync(void)
 {
 	int ret = 0;
+	char loop = FALSE;
 
 	do
 	{
-		ret = sendmsg(fd, );
-	} while ();
+		loop = FALSE;
+		ret = sendmsg(fd, &sndMsg, 0);
+		if((ret < 0) && (errno == EINTR))
+			loop = TRUE;
+		else if((ret < 0) && (errno == EINTR))
+		{
+			logError("Secvmsg error\0");
+			exit(1);
+		}
+	} 
+	while (loop);
 }
 
 static void nlDebug(struct nlmsghdr *nlMsg)
 {
-	printf("Lunghezza pacchetto: %d\n", nlMsg->nlMsg_len);
-	printf("Tipo Pacchetto: %d\n", nlMsg->nlMsg_type);
-	printf("Flags Pacchetto: %d\n", nlMsg->nlMsg_flags);
-	printf("SeqN Pacchetto: %d\n", nlMsg->nlMsg_seq);
-	printf("Pid src Pacchetto: %d\n", nlMsg->nlMsg_pid);
+	printf("Lunghezza pacchetto: 0x%x\n", nlMsg->nlmsg_len);
+	if(nlMsg->nlmsg_type == RTM_NEWNEIGH)
+		printf("Tipo Pacchetto: RTM_NEWNEIGH\n");
+	else if(nlMsg->nlmsg_type == RTM_DELNEIGH)
+		printf("Tipo Pacchetto: RTM_DELNEIGH\n");
+	else if(nlMsg->nlmsg_type == RTM_GETNEIGH)
+		printf("Tipo Pacchetto: RTM_GETNEIGH\n");
+
+	printf("Flags Pacchetto: 0x%x\n", nlMsg->nlmsg_flags);
+	printf("SeqN Pacchetto: 0x%x\n", nlMsg->nlmsg_seq);
+	printf("Pid src Pacchetto: 0x%x\n", nlMsg->nlmsg_pid);
+
 }
 
 static void mainLoop(void)
@@ -207,7 +247,7 @@ static void mainLoop(void)
 		if((ret < 0) && (errno == ENOBUFS))
 		{
 			// Send a NLM_F_DUMP request to resync data flow
-			//netLinkReSync();
+			netLinkReSync();
 		}
 		else if((ret < 0) && (errno != EINTR))
 		{
@@ -217,12 +257,12 @@ static void mainLoop(void)
 		else if(ret >= 0)
 		{
 			// check packet integrity
-			if(packetTest(nlMsg, ret))
+			if(packetTest(rcvNlMsg, ret))
 			{
 				// TODO PUNTO DI CONTROLLO PACCHETTI NETLINK
-				nlDebug(nlMsg);
+				nlDebug(rcvNlMsg);
 
-				struct neighBourBlock *neighBour = parseNlPacket(nlMsg);
+				struct neighBourBlock *neighBour = parseNlPacket(rcvNlMsg);
 				
 				if(neighBour != NULL)
 				{

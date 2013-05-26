@@ -84,6 +84,8 @@ static void cleanExit(void)
 // init structures
 static void initStruct(void)
 {
+	int page_size = getpagesize();
+ 
 	// reset structures
 	memset(&src_addr, 0, sizeof(src_addr));
  	memset(&dest_addr, 0, sizeof(dest_addr));
@@ -102,7 +104,7 @@ static void initStruct(void)
 	toKern_addr.nl_pid = 0;
 	toKern_addr.nl_groups = 0;
 
-	rcvNlMsg = (struct nlmsghdr *) malloc(NLMSG_SPACE(BUFLENGTH));
+	rcvNlMsg = (struct nlmsghdr *) malloc(page_size);
 	
 
 	if(rcvNlMsg == NULL)
@@ -112,10 +114,10 @@ static void initStruct(void)
 	}
 
 	
-	memset(rcvNlMsg, 0, NLMSG_SPACE(BUFLENGTH));
+	memset(rcvNlMsg, 0, page_size);
 	
 	rcvIov.iov_base = (void *) rcvNlMsg;
- 	rcvIov.iov_len = NLMSG_SPACE(BUFLENGTH);
+ 	rcvIov.iov_len = page_size;
 
 	rcvMsg.msg_name = (void *) &dest_addr;
 	rcvMsg.msg_namelen = sizeof(dest_addr);
@@ -256,34 +258,53 @@ static void mainLoop(void)
 		}
 		else if(ret >= 0)
 		{
-			// check packet integrity
-			if(packetTest(rcvNlMsg, ret))
-			{
-				// TODO PUNTO DI CONTROLLO PACCHETTI NETLINK
-				nlDebug(rcvNlMsg);
+			char loop = FALSE;
+			int len = ret;
 
-				struct neighBourBlock *neighBour = parseNlPacket(rcvNlMsg);
-				
-				if(neighBour != NULL)
+			// TODO PUNTO DI CONTROLLO PACCHETTI NETLINK
+			nlDebug(rcvNlMsg);
+			
+			do
+			{
+				loop = FALSE;
+
+				if(NLMSG_OK(rcvNlMsg, len))
 				{
-					if(getMode() == DEBUG) {
-						debugPrint(neighBour);
-						free(neighBour);
+					struct neighBourBlock *neighBour = parseNlPacket(rcvNlMsg);
+					
+
+					// verify if netlink header is part of multipart message
+					if(((rcvNlMsg->nlmsg_flags & NLM_F_MULTI) != 0) && (rcvNlMsg->nlmsg_type != NLMSG_DONE))
+					{		
+						rcvNlMsg = NLMSG_NEXT(rcvNlMsg, len);
+						loop = TRUE;
 					}
-					else
+
+					// handling neighbour struct
+					if(neighBour != NULL)
 					{
-						if((filtersActived()) && (filter(neighBour) == FALSE))
-						{
+						if(getMode() == DEBUG) {
+							debugPrint(neighBour);
 							free(neighBour);
-						}						
+						}
 						else
 						{
-							// test if packet is present in hash table and log if necessary
-							pktSave(neighBour);
-						}	
+							if((filtersActived()) && (filter(neighBour) == FALSE))
+							{
+								free(neighBour);
+							}						
+							else
+							{
+								// test if packet is present in hash table and log if necessary
+								pktSave(neighBour);
+							}	
+						}
 					}
-				}			
+
+					
+				}
 			}
+			while(loop);					
 		}
 	}
 }

@@ -106,8 +106,3 @@ struct neighBourBlock *parseNlPacket(struct nlmsghdr *nlMsgHdr)
 
 	return NULL;
 }
-
-inline int packetTest(struct nlmsghdr *nlMsgHdr, int len)
-{
-	return NLMSG_OK(nlMsgHdr, len);
-}
